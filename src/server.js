@@ -106,13 +106,28 @@ async function upstream(url, options = {}) {
 app.get('/api/viff', auth, asyncRoute(async (req, res) => {
   const callsign = String(req.query.callsign || '').trim().toUpperCase();
   if (!/^[A-Z0-9-]{2,12}$/.test(callsign)) return res.status(400).json({ error: 'invalid_callsign' });
-  const template = process.env.VIFF_FLIGHT_LOOKUP_URL;
-  if (!template) return res.status(503).json({ error: 'viff_lookup_not_configured' });
-  // URL is an administrator-supplied fixed template, never a user-supplied URL.
-  const url = template.replaceAll('{callsign}', encodeURIComponent(callsign));
-  const parsed = new URL(url);
-  if (parsed.protocol !== 'https:') return res.status(500).json({ error: 'viff_https_required' });
-  const data = await upstream(parsed.toString(), { headers: viffHeaders() });
+  
+const baseUrl = process.env.VIFF_FLIGHT_LOOKUP_URL;
+if (!baseUrl) {
+  return res.status(503).json({ error: 'viff_lookup_not_configured' });
+}
+
+const parsed = new URL(baseUrl);
+
+if (
+  parsed.protocol !== 'https:' ||
+  parsed.hostname !== 'api.viffsys.com' ||
+  parsed.pathname !== '/ifps/callsign'
+) {
+  return res.status(500).json({ error: 'invalid_viff_lookup_url' });
+}
+
+parsed.searchParams.set('callsign', callsign);
+
+const data = await upstream(parsed.toString(), {
+  headers: viffHeaders()
+});
+
   return res.json(data);
 }));
 
