@@ -1,78 +1,145 @@
-# Turnaround — Render + PostgreSQL
+# Turnaround — v1 publique
 
-Cette archive fournit un socle backend Node.js/Express et une copie du frontend Turnaround adaptée pour appeler les routes `/api/*` sur le même domaine. PostgreSQL conserve les comptes et les données entre les déploiements. La clé vIFF est uniquement lue côté serveur depuis une variable d'environnement.
+> **Turnaround** est une application web de suivi d’escale destinée à regrouper, dans une interface unique, les principales informations utiles à la préparation d’un vol, au suivi des passagers et à la coordination du départ.
 
-## Important avant la production
+- **Application web :** https://turnaround-ddn6.onrender.com
+- **Dépôt du projet :** https://github.com/sachacdg/turnaround
+- **Version documentée :** v1 publique
 
-- L'API vIFF n'est **pas activée tant que ses URL et son contrat ne sont pas confirmés**. Le code n'invente pas d'endpoint : renseignez `VIFF_FLIGHT_LOOKUP_URL` et `VIFF_TOBT_SUBMIT_URL` avec les valeurs de la documentation/du fournisseur.
-- `667` ne doit pas être mis dans le dépôt ni dans le HTML. Si `667` est bien la clé autorisée, saisissez-la dans Render > Web Service > Environment > `VIFF_API_KEY`.
-- Les routes de lecture et d'écriture vIFF nécessitent une authentification Turnaround.
-- Le proxy PDF autorise uniquement les hôtes SimBrief ; si les PDF de briefing proviennent d'autres domaines, adaptez la liste d'autorisation avec prudence.
-- Les nouveaux comptes exigent un identifiant de 3–32 caractères (`a-z`, chiffres, `.`, `_`, `-`) et un mot de passe de 12 caractères minimum. Les anciens comptes locaux ne sont pas automatiquement migrés : il faut créer des comptes serveur ou préparer une migration explicite.
-- La sauvegarde actuelle des données est un instantané JSON par utilisateur. Des signatures et des données opérationnelles y sont stockées : limitez l'accès et sauvegardez la base.
+---
 
-## Fichiers
+## 1. Présentation du projet
 
-- `public/index.html` — frontend adapté.
-- `src/server.js` — routes API, auth, proxy SimBrief/vIFF.
-- `src/db.js` — pool PostgreSQL.
-- `src/migrate.js` et `migrations/001_initial.sql` — schéma initial idempotent.
-- `.env.example` — noms des variables, sans secrets.
+Une escale demande de suivre plusieurs informations dans un temps limité : les données du vol, les horaires, la préparation cabine, l’embarquement et les heures liées au départ.
 
-## Déploiement Render
+Turnaround vise à faciliter cette lecture en réunissant les informations principales dans un tableau de bord. L’application est notamment adaptée à l’organisation d’une escale en simulation aérienne et à la consultation rapide des données opérationnelles.
 
-### 1. GitHub
+> **Capture d’écran — vue générale du Dashboard**  
+> *Insérer ici une capture d’écran du Dashboard complet.*
 
-1. Créez un dépôt GitHub privé nommé `turnaround`.
-2. Décompressez cette archive et envoyez **le contenu** dans la racine du dépôt (le dossier `public/` doit être à la racine).
-3. Ne téléversez jamais un fichier `.env` contenant des secrets.
+---
 
-### 2. PostgreSQL
+## 2. Fonctions principales
 
-1. Dans Render, cliquez **New + → PostgreSQL**.
-2. Choisissez un nom tel que `turnaround-db`, une région et une offre adaptée.
-3. Créez la base et copiez son URL de connexion **interne** pour l'utiliser avec le Web Service dans la même région.
-4. Vérifiez les options de sauvegarde/retention proposées par votre offre.
+### Tableau de bord du vol
 
-### 3. Web Service
+Le Dashboard regroupe les informations essentielles du vol et présente une vue synthétique des horaires et des éléments suivis pendant l’escale.
 
-1. Render → **New + → Web Service**.
-2. Connectez le dépôt `turnaround`.
-3. Runtime : Node.
-4. Build Command : `npm install`.
-5. Start Command : `npm start`.
-6. Ajoutez les variables d'environnement :
-   - `NODE_ENV` = `production`
-   - `DATABASE_URL` = URL interne PostgreSQL de Render
-   - `JWT_SECRET` = chaîne aléatoire longue (au moins 32 caractères ; utilisez un générateur de secrets)
-   - `SIMBRIEF_BASE_URL` = `https://www.simbrief.com/api/xml.fetcher.php`
-   - `VIFF_API_KEY` = clé fournie par vIFF (à entrer directement dans Render, pas dans GitHub)
-   - `VIFF_API_KEY_HEADER` = nom d'en-tête confirmé par vIFF, par défaut `X-API-Key`
-   - `VIFF_FLIGHT_LOOKUP_URL` = URL HTTPS exacte fournie par vIFF, avec `{callsign}` à l'endroit du callsign
-   - `VIFF_TOBT_SUBMIT_URL` = URL HTTPS exacte de soumission TOBT fournie par vIFF
-   - `VIFF_AUTH_SCHEME` = laisser vide sauf si la documentation vIFF demande une auth `Authorization: <scheme> <key>`
-7. Créez le service et attendez la fin du déploiement.
+**Capture d’écran — bandeau du Dashboard**  
+*Insérer ici une capture du bandeau Départ / indicateur central / Arrivée.*
 
-Le démarrage exécute une migration idempotente avant de lancer le serveur. Elle ne supprime pas les tables existantes.
+### Import des données SimBrief
 
-### 4. Vérifications
+Lorsque le dossier de vol SimBrief est disponible et que la fonction d’import est opérationnelle, les données du briefing peuvent servir à renseigner le vol sans devoir tout saisir manuellement.
 
-- Ouvrir `https://VOTRE-SERVICE.onrender.com/api/ping` : doit répondre `{"ok":true}`.
-- Ouvrir la page d'accueil, créer un compte de test et se connecter.
-- Enregistrer un changement, recharger la page, vérifier que les données reviennent.
-- Se connecter avec un second compte et vérifier qu'il ne voit pas les données du premier.
-- Déployer un changement inoffensif, puis vérifier que les comptes et les données sont toujours là.
-- Tester SimBrief avec un nom valide.
-- Ne tester vIFF qu'après confirmation des endpoints et formats par vIFF. Une réponse `viff_*_not_configured` indique qu'il manque une variable ; elle ne signifie pas que vIFF est indisponible.
+Les informations importées doivent être vérifiées, notamment le type d’appareil, les horaires et le nombre de passagers.
 
-## Mises à jour
+**Capture d’écran — vol importé depuis SimBrief**  
+*Insérer ici une capture du vol chargé.*
 
-Modifiez les fichiers, committez et poussez sur la branche liée au Web Service. Render redéploie le code, tandis que PostgreSQL reste séparé. Ne supprimez pas la base lors d'un déploiement. Faites une sauvegarde avant toute migration de schéma.
+### TOBT, TSAT et CTOT
 
-## Limitations connues
+Le Dashboard permet de consulter les informations de départ disponibles :
 
-- La clé API vIFF et les URLs exactes ne peuvent pas être devinées ; la lecture et l'envoi vIFF restent désactivés jusqu'à configuration documentée.
-- L'authentification repose sur un bearer token de 12 heures. Après expiration, l'utilisateur doit se reconnecter. Le frontend actuel ne renouvelle pas automatiquement le token.
-- Le frontend conserve certains fichiers PDF de briefing dans IndexedDB localement ; ces fichiers ne sont pas synchronisés entre appareils via le backend dans cette première version.
-- Les données actuellement uniquement présentes dans `localStorage`/IndexedDB ne sont pas importées automatiquement vers PostgreSQL. Conservez une copie et utilisez un processus de migration dédié si elles doivent être préservées.
-- Cette archive est un socle prêt à tester, pas une certification de sécurité ni une validation de l'API vIFF. Faites les tests d'acceptation avant l'usage opérationnel.
+- **TOBT** — Target Off-Block Time : heure cible à laquelle l’avion doit être prêt à quitter son poste.
+- **TSAT** — Target Start-up Approval Time : heure cible d’autorisation de mise en route.
+- **CTOT** — Calculated Take-Off Time : créneau calculé de décollage, lorsqu’il est fourni.
+
+Le comportement des données dépend de la disponibilité de vIFF et de la configuration du service. La TOBT peut être saisie dans l’interface et envoyée à vIFF si la connexion correspondante fonctionne. Une valeur affichée ne doit pas être considérée comme confirmée par un service externe tant que son retour n’a pas été vérifié.
+
+**Capture d’écran — fenêtre TOBT / envoi à vIFF**  
+*Insérer ici une capture de la fenêtre de saisie et du bouton « Envoyer ».*
+
+### Estimation du bloc arrivée et indicateur d’écart
+
+Le Dashboard peut comparer deux estimations d’arrivée calculées à partir des horaires disponibles et du Block Time. L’indicateur circulaire est une représentation visuelle de l’écart, pas un compte à rebours en temps réel.
+
+Dans la configuration prévue :
+- vert : écart nul ou négatif ;
+- orange : écart positif inférieur à 15 minutes ;
+- rouge : écart de 15 minutes ou plus.
+
+**Capture d’écran — indicateur central et bloc arrivée**  
+*Insérer ici une capture montrant l’indicateur et l’heure d’arrivée estimée.*
+
+### Suivi des passagers et capacité cabine
+
+Le module passagers permet de suivre le nombre de passagers et l’avancement de l’embarquement, ainsi que les places restantes selon la capacité de référence configurée pour le type d’appareil.
+
+Si le nombre de passagers importé depuis SimBrief dépasse la capacité de référence connue, un avertissement peut être affiché. Cet avertissement signale une incohérence potentielle, sans remplacer la vérification de la configuration réelle de la cabine.
+
+**Capture d’écran — tableau PAX / capacité cabine**  
+*Insérer ici une capture du module passagers.*
+
+### Autres informations de préparation
+
+Selon les fonctions disponibles dans la version utilisée, l’application peut également présenter des informations de masse et centrage, des données de vol, des éléments de suivi et des outils de préparation complémentaires.
+
+**Capture d’écran — autre module utilisé**  
+*Insérer ici une capture d’un module pertinent.*
+
+---
+
+## 3. Accessibilité et conditions d’utilisation
+
+- **Accès web :** l’application s’utilise depuis un navigateur compatible, sans installation classique sur ordinateur.
+- **Écrans :** elle est principalement pensée pour une utilisation sur ordinateur ou tablette ; l’affichage peut varier selon la taille de l’écran.
+- **Accès public :** la version publique est accessible à l’adresse indiquée plus haut, sous réserve de disponibilité du service.
+- **Services externes :** les fonctions liées à SimBrief ou vIFF dépendent de leur disponibilité, des autorisations et de la configuration en place.
+- **Vérification des données :** les valeurs importées, calculées ou saisies doivent être contrôlées par l’utilisateur.
+
+L’interface ne remplace pas les procédures officielles d’un exploitant, les systèmes certifiés ni les validations opérationnelles applicables.
+
+---
+
+## 4. Exemple de workflow pendant une escale
+
+*Exemple fictif, donné à titre illustratif.*
+
+1. **Ouvrir Turnaround**  
+   Accéder à l’application depuis un navigateur et ouvrir le Dashboard.
+
+2. **Charger le vol**  
+   Importer le dossier SimBrief si cette fonction est disponible. Vérifier le numéro de vol, les aéroports, le type d’appareil, les horaires et le nombre de passagers.
+
+3. **Contrôler les données cabine**  
+   Vérifier la capacité de référence et la répartition des passagers. Examiner tout avertissement de dépassement et confirmer les données utilisées.
+
+4. **Suivre l’embarquement**  
+   Mettre à jour ou consulter le nombre de passagers embarqués et les places restantes, en fonction des informations disponibles pendant l’escale.
+
+5. **Consulter les heures de départ**  
+   Vérifier l’OBT/TOBT, la TSAT et, si elle est disponible, la CTOT. Si une TOBT doit être transmise à vIFF, utiliser la commande d’envoi puis vérifier le retour du service.
+
+6. **Consulter l’estimation d’arrivée**  
+   Lire l’heure d’arrivée estimée et l’indicateur d’écart comme une aide visuelle. L’indicateur ne constitue pas un chronomètre réel.
+
+7. **Effectuer le contrôle final**  
+   Vérifier les informations du vol et les données affichées avant de considérer le suivi de l’escale comme terminé.
+
+**Capture d’écran — exemple de workflow**  
+*Insérer ici une capture montrant le Dashboard à un moment représentatif de l’escale.*
+
+---
+
+## 5. Limites et bonnes pratiques
+
+- Les capacités cabine génériques peuvent différer de la configuration réelle d’une compagnie.
+- Les données SimBrief dépendent du dossier importé et peuvent nécessiter une correction.
+- Les données vIFF dépendent de la connexion et de la disponibilité du service externe.
+- Une valeur affichée localement ne signifie pas nécessairement qu’elle a été transmise ou confirmée par un système externe.
+- Les captures d’écran publiées doivent masquer les données personnelles, identifiants, jetons et autres informations sensibles.
+
+## 6. Signaler un problème
+
+Pour signaler un bug ou proposer une amélioration, utiliser la page Issues du dépôt :
+
+https://github.com/sachacdg/turnaround/issues
+
+Inclure, si possible, les étapes pour reproduire le problème, le navigateur utilisé et la fonction concernée. Ne pas publier de clés d’API, de mots de passe ou d’autres informations sensibles.
+
+---
+
+## Avertissement
+
+Turnaround est un outil d’assistance à l’organisation et à la simulation. Il ne constitue pas un système certifié de gestion des opérations aériennes et ne doit pas être utilisé comme source unique pour une décision liée à la sécurité ou à l’exploitation réelle d’un aéronef.
