@@ -329,19 +329,24 @@ function hcT(a){const h=S.hc;if(a=='go'){if(!h.on){h.on=1;h.t0=Date.now()-h.el}e
 function hcTxt(){const h=S.hc,el=h.on?Date.now()-h.t0:h.el,rem=holdMin()*60-Math.floor(el/1000),s=Math.abs(rem),c=rem<0?'var(--rd)':'var(--tx)';return `<span style="color:${c}">${rem<0?'−':''}${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}</span>`}
 /* Cabin reference database by aircraft type. Confirm exact layout against the operator's actual cabin configuration. */
 const CABIN_DB=[
+ /* Air France */
+ {match:/BCS3|A220-300|223/,name:'A220-300 Air France',total:148,C:null,Y:null},
+ {match:/A318|A318-100/,name:'A318 Air France',total:131,C:null,Y:null},
  {match:/A319(?:-100)?|A19N/,name:'A319',total:144,C:12,Y:132},
  {match:/A320(?:-200)?|A20N/,name:'A320',total:180,C:12,Y:168},
  {match:/A321(?:-200)?|A21N/,name:'A321',total:220,C:20,Y:200},
  {match:/A332|A330-200/,name:'A330-200',total:247,C:24,Y:223},
  {match:/A333|A330-300/,name:'A330-300',total:295,C:30,Y:265},
  {match:/A359|A350-900/,name:'A350-900',total:324,C:34,Y:290},
+ {match:/B772|B777-200|B77W-200/,name:'B777-200',total:305,C:32,Y:273},
+ {match:/B773|B777-300|B77W-300/,name:'B777-300',total:369,C:42,Y:327},
+ {match:/B789|B787-9/,name:'B787-9',total:279,C:null,Y:null},
+
+ /* Autres profils génériques */
  {match:/A35K|A350-1000/,name:'A350-1000',total:369,C:44,Y:325},
  {match:/B738|B737-800/,name:'B737-800',total:189,C:16,Y:173},
  {match:/B739|B737-900/,name:'B737-900',total:215,C:20,Y:195},
- {match:/B772|B777-200/,name:'B777-200',total:305,C:32,Y:273},
- {match:/B773|B777-300/,name:'B777-300',total:369,C:42,Y:327},
  {match:/B788|B787-8/,name:'B787-8',total:242,C:24,Y:218},
- {match:/B789|B787-9/,name:'B787-9',total:290,C:30,Y:260},
  {match:/B78X|B787-10/,name:'B787-10',total:330,C:36,Y:294}
 ];
 function cabinForFlight(){const ty=String(S.ofp&&S.ofp.ty||FL.ty||'').toUpperCase().replace(/\s+/g,'');return CABIN_DB.find(x=>x.match.test(ty))||null}
