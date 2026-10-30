@@ -63,10 +63,14 @@ app.post('/api/viff-tobt',auth,asyncRoute(async(req,res)=>{
  if(!/^[A-Z0-9-]{2,12}$/.test(callsign)||!match||Number(match[1].slice(0,2))>23)return res.status(400).json({error:'invalid_tobt_payload'});
  const hhmm=match[1],command=`REQTOBT/${hhmm}/PILOT`;
  const before=await getFlight(callsign);
- const dpi=viffUrl('VIFF_TOBT_SUBMIT_URL','/ifps/dpi');dpi.searchParams.set('callsign',callsign);
- const field=process.env.VIFF_TOBT_COMMAND_FIELD||'command';
- if(!/^[A-Za-z][A-Za-z0-9_]{0,63}$/.test(field))return res.status(500).json({error:'invalid_viff_command_field'});
- const submitted=await upstream(dpi.toString(),{method:'POST',headers:{...viffHeaders(),'Content-Type':'application/json'},body:JSON.stringify({[field]:command})});
+ const dpi=viffUrl('VIFF_TOBT_SUBMIT_URL','/ifps/dpi');
+dpi.searchParams.set('callsign',callsign);
+dpi.searchParams.set('value',command);
+
+const submitted=await upstream(dpi.toString(),{
+  method:'POST',
+  headers:viffHeaders()
+});
  const after=await getFlight(callsign);
  return res.json({ok:true,callsign,command,before,submitted,after,confirmedState:after});
 }));
