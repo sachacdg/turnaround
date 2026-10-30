@@ -574,7 +574,14 @@ function boardTick(){if(S.brd=='idle'){S.bt0=0;return}if(S.brd!='open')return;co
 function updLive(){const s=(id,h)=>{const e=document.getElementById(id);if(e)e.innerHTML=h};s('tobtv',tobtTxt());s('ctotv',S.ctotV?hz(S.ctotV)+'Z':'–');s('cdms',S.cdm?'· '+esc(S.cdm):'');s('tsat',tsatTxt());s('arr2',arrTxt());const lab=document.getElementById('tobtlab'),sat=document.getElementById('tsat');if(lab)lab.textContent=S.tsat?'TSAT':'TOBT';if(sat)sat.style.display=S.tsat?'inline':'none';const d=document.getElementById('gapdial'),m=gapMinutes(S.ofp,S);if(d){d.style.color=gapColor(S.ofp,S);d.style.borderColor=gapColor(S.ofp,S);d.textContent=gapLabel(S.ofp,S)}}
 async function viffPoll(){const o=S.ofp;if(!o)return;const q='callsign='+encodeURIComponent(o.call);let j=null,lastStatus='';const headers={Accept:'application/json',Authorization:'Bearer '+Store.tok};for(const x of['/api/viff?'+q]){try{const r=await fetch(x,{headers});if(r.ok){j=await r.json();break}lastStatus='HTTP '+r.status}catch(e){lastStatus=e&&e.message||'network error'}}
 if(!j){S.viffSt='off';S.viffErr=lastStatus||'No response';updLive();return}const f=Array.isArray(j)?j[0]:(j.flight||j.data||j);if(!f){S.viffSt='off';S.viffErr='No flight matched '+o.call;updLive();return}const cd=f.cdmData||f.cdm_data||{},hm4=v=>{v=String(v==null?'':v).trim();if(/^\d{6}$/.test(v))return v.slice(0,2)+':'+v.slice(2,4);if(/^\d{4}$/.test(v))return v.slice(0,2)+':'+v.slice(2);const m=v.match(/^(\d{2}):(\d{2})(?::\d{2})?$/);return m?m[1]+':'+m[2]:''},ts=hm4(cd.tsat)||hm4(f.tsat);S.tsat=ts?tdm(ts):0;S.tobtV=ts?(hm4(cd.tobt)||hm4(f.tobt)||''):'';S.ctotV=hm4(cd.ctot)||hm4(f.ctot)||hm4(cd.ttot)||hm4(f.ttot)||'';S.viffEta=(()=>{const v=f.eta||f.ETA||cd.eta||cd.ETA||'';if(!v)return '';const h=hm4(v);if(h)return h;const d=new Date(v);return !isNaN(d.getTime())?String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0'):''})();S.cdm=f.cdmSts||f.cdm_sts||'';S.viffSt='ok';S.viffErr='';updLive()}
-let lt2={k:'',t:0};function dtap(k){const n=Date.now();if(lt2.k==k&&n-lt2.t<450){lt2={k:'',t:0};S.sm2=k;render();setTimeout(()=>{const i=$('#tv');if(i)i.focus()},50)}else lt2={k,t:n}}
+function dtap(k){
+  S.sm2=k;
+  render();
+  setTimeout(()=>{
+    const i=$('#tv');
+    if(i)i.focus();
+  },50);
+}
 function setTsat(v){const n=nT(v);S.tsat=n?tdm(n):0;S.sm2=null;render()}
 async function setTobt(v){const n=nT(v);if(!n||!S.ofp||!S.ofp.call)return;const hhmm=String(n).replace(':','').slice(0,4);if(!/^\d{4}$/.test(hhmm))return;S.sm2=null;S.msg=t('tsend');render();try{
 /* Read current confirmed flight state before submitting the pilot request. */
