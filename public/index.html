@@ -432,7 +432,24 @@ Object.assign(D,{tobte:'Modifier la TOBT ↗|Edit TOBT ↗',tsim:'TSAT (saisie m
 function vdgs(){window.open('https://vdgs.vatsimspain.es/','_blank','noopener')}
 function eosOpen(a){const b=S.eos||'https://blackbox711.com/airport-info-charts.html';try{navigator.clipboard.writeText(a)}catch(e){}S.msg=t('eoscp').replace('{A}',a);window.open(b.replace('{ICAO}',a),'_blank','noopener');render()}
 async function viffPoll(){const o=S.ofp;if(!o)return;const q='callsign='+encodeURIComponent(o.call);let j=null;for(const x of['/api/viff?'+q]){try{const r=await fetch(x,{headers:{Authorization:'Bearer '+Store.tok,Accept:'application/json'}});if(r.ok){j=await r.json();break}}catch(e){}}
-if(!j){S.viffSt='off';return}const f=Array.isArray(j)?j[0]:j;if(!f)return;const cd=f.cdmData||{},hm4=v=>{v=String(v==null?'':v).trim();if(/^\d{6}$/.test(v))return v.slice(0,2)+':'+v.slice(2,4);if(/^\d{4}$/.test(v))return v.slice(0,2)+':'+v.slice(2);const m=v.match(/^(\d{2}):(\d{2})(?::\d{2})?$/);return m?m[1]+':'+m[2]:''},ts=hm4(cd.tsat)||hm4(f.tsat);S.tsat=ts?tdm(ts):0;S.tobtV=ts?(hm4(cd.tobt)||hm4(f.tobt)||''):'';S.ctotV=hm4(cd.ctot)||hm4(f.ctot)||hm4(cd.ttot)||hm4(f.ttot)||'';S.viffEta=(()=>{const v=f.eta||f.ETA||cd.eta||cd.ETA||'';if(!v)return '';const h=hm4(v);if(h)return h;const d=new Date(v);return !isNaN(d.getTime())?String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0'):''})();S.cdm=f.cdmSts||'';S.viffSt='ok';if(S.tab=='dash'&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||''))render()}
+if(!j){S.viffSt='off';return}const f=Array.isArray(j)?j[0]:j;if(!f)return;const cd=f.cdmData||{},hm4=v=>{v=String(v==null?'':v).trim();if(/^\d{6}$/.test(v))return v.slice(0,2)+':'+v.slice(2,4);if(/^\d{4}$/.test(v))return v.slice(0,2)+':'+v.slice(2);const m=v.match(/^(\d{2}):(\d{2})(?::\d{2})?$/);return m?m[1]+':'+m[2]:''},isCdm=f.isCdm===true,ts=hm4(cd.tsat)||hm4(f.tsat),ctot=hm4(cd.ctot)||hm4(f.ctot)||hm4(cd.ttot)||hm4(f.ttot)||'';
+
+S.tsat=isCdm&&ts?tdm(ts):0;
+
+let offBlock='';
+if(!isCdm){
+  const taxi=Number(f.taxi);
+  if(ctot&&Number.isFinite(taxi)){
+    const p=ctot.split(':').map(Number);
+    const total=(p[0]*60+p[1]-taxi+1440)%1440;
+    offBlock=String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
+  }else{
+    offBlock=hm4(f.obt)||hm4(f.eobt)||'';
+  }
+}
+
+S.tobtV=isCdm?(hm4(cd.tobt)||hm4(f.tobt)||''):offBlock;
+S.ctotV=ctot;S.viffEta=(()=>{const v=f.eta||f.ETA||cd.eta||cd.ETA||'';if(!v)return '';const h=hm4(v);if(h)return h;const d=new Date(v);return !isNaN(d.getTime())?String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0'):''})();S.cdm=f.cdmSts||'';S.viffSt='ok';if(S.tab=='dash'&&!/INPUT|TEXTAREA|SELECT/.test((document.activeElement||{}).tagName||''))render()}
 function V_set(){const v=S.viff,seg=(a,b,f,cur)=>`<span class=seg><button class="${cur?'on':''}" onclick="${f[0]}">${a}</button><button class="${cur?'':'on'}" onclick="${f[1]}">${b}</button></span>`,col=(k,l)=>`<div><label>${t(l)}</label><input type=color value="${S.th[k]}" oninput="thSet('${k}',this.value)" style="width:100%;padding:2px;height:44px"></div>`;
 return `<div class=card><b>${t('lang')}</b><p><span class=seg><button class="${S.lang=='fr'?'on':''}" onclick="S.lang='fr';render()">FR</button><button class="${S.lang=='en'?'on':''}" onclick="S.lang='en';render()">EN</button></span></p><p class=mu>${t('utcn')}</p></div>
 <div class=card><b>SimBrief</b><div class=fgs style="margin-top:8px"><div><label>${t('sbu')}</label><input value="${esc(S.sbu)}" onchange="S.sbu=this.value.trim()"></div></div><p><button class="btn p" onclick="syn()">${t('syncnow')}</button> <button class=btn onclick="demo()">${t('demo')}</button></p></div>
@@ -592,7 +609,24 @@ if(sat)sat.style.display=S.tsat?'inline':'none';
 const tob=document.getElementById('tobtv');
 if(tob)tob.style.display=S.tsat?'none':'inline';const d=document.getElementById('gapdial'),m=gapMinutes(S.ofp,S);if(d){d.style.color=gapColor(S.ofp,S);d.style.borderColor=gapColor(S.ofp,S);d.textContent=gapLabel(S.ofp,S)}}
 async function viffPoll(){const o=S.ofp;if(!o)return;const q='callsign='+encodeURIComponent(o.call);let j=null,lastStatus='';const headers={Accept:'application/json',Authorization:'Bearer '+Store.tok};for(const x of['/api/viff?'+q]){try{const r=await fetch(x,{headers});if(r.ok){j=await r.json();break}lastStatus='HTTP '+r.status}catch(e){lastStatus=e&&e.message||'network error'}}
-if(!j){S.viffSt='off';S.viffErr=lastStatus||'No response';updLive();return}const f=Array.isArray(j)?j[0]:(j.flight||j.data||j);if(!f){S.viffSt='off';S.viffErr='No flight matched '+o.call;updLive();return}const cd=f.cdmData||f.cdm_data||{},hm4=v=>{v=String(v==null?'':v).trim();if(/^\d{6}$/.test(v))return v.slice(0,2)+':'+v.slice(2,4);if(/^\d{4}$/.test(v))return v.slice(0,2)+':'+v.slice(2);const m=v.match(/^(\d{2}):(\d{2})(?::\d{2})?$/);return m?m[1]+':'+m[2]:''},ts=hm4(cd.tsat)||hm4(f.tsat);S.tsat=ts?tdm(ts):0;S.tobtV=ts?(hm4(cd.tobt)||hm4(f.tobt)||''):'';S.ctotV=hm4(cd.ctot)||hm4(f.ctot)||hm4(cd.ttot)||hm4(f.ttot)||'';S.viffEta=(()=>{const v=f.eta||f.ETA||cd.eta||cd.ETA||'';if(!v)return '';const h=hm4(v);if(h)return h;const d=new Date(v);return !isNaN(d.getTime())?String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0'):''})();S.cdm=f.cdmSts||f.cdm_sts||'';S.viffSt='ok';S.viffErr='';updLive()}
+if(!j){S.viffSt='off';S.viffErr=lastStatus||'No response';updLive();return}const f=Array.isArray(j)?j[0]:(j.flight||j.data||j);if(!f){S.viffSt='off';S.viffErr='No flight matched '+o.call;updLive();return}const cd=f.cdmData||f.cdm_data||{},hm4=v=>{v=String(v==null?'':v).trim();if(/^\d{6}$/.test(v))return v.slice(0,2)+':'+v.slice(2,4);if(/^\d{4}$/.test(v))return v.slice(0,2)+':'+v.slice(2);const m=v.match(/^(\d{2}):(\d{2})(?::\d{2})?$/);return m?m[1]+':'+m[2]:''},isCdm=f.isCdm===true,ts=hm4(cd.tsat)||hm4(f.tsat),ctot=hm4(cd.ctot)||hm4(f.ctot)||hm4(cd.ttot)||hm4(f.ttot)||'';
+
+S.tsat=isCdm&&ts?tdm(ts):0;
+
+let offBlock='';
+if(!isCdm){
+  const taxi=Number(f.taxi);
+  if(ctot&&Number.isFinite(taxi)){
+    const p=ctot.split(':').map(Number);
+    const total=(p[0]*60+p[1]-taxi+1440)%1440;
+    offBlock=String(Math.floor(total/60)).padStart(2,'0')+':'+String(total%60).padStart(2,'0');
+  }else{
+    offBlock=hm4(f.obt)||hm4(f.eobt)||'';
+  }
+}
+
+S.tobtV=isCdm?(hm4(cd.tobt)||hm4(f.tobt)||''):offBlock;
+S.ctotV=ctot;S.viffEta=(()=>{const v=f.eta||f.ETA||cd.eta||cd.ETA||'';if(!v)return '';const h=hm4(v);if(h)return h;const d=new Date(v);return !isNaN(d.getTime())?String(d.getUTCHours()).padStart(2,'0')+':'+String(d.getUTCMinutes()).padStart(2,'0'):''})();S.cdm=f.cdmSts||f.cdm_sts||'';S.viffSt='ok';S.viffErr='';updLive()}
 function dtap(k){
   S.sm2=k;
   render();
