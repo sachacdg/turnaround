@@ -772,44 +772,11 @@ return `<div style="margin-bottom:12px"><b>${t('pnc')} : ${c.cab.length}</b> <sp
 function so(k){S.so[k]=!S.so[k];render()}
 function ulgT(l){const a=S.ulang,i=a.indexOf(l);i<0?a.push(l):a.splice(i,1);S.crew=null;render()}
 function V_set(){const v=S.viff,seg=(a,b,f,cur)=>`<span class=seg><button class="${cur?'on':''}" onclick="${f[0]}">${a}</button><button class="${cur?'':'on'}" onclick="${f[1]}">${b}</button></span>`,col=(k,l)=>`<div><label>${t(l)}</label><input type=color value="${S.th[k]}" oninput="thSet('${k}',this.value)" style="width:100%;padding:2px;height:44px"></div>`,
-function gsxOpen(){
-  const host=(S.gsxHost||'').trim();
-  const port=String(S.gsxPort||'8744').trim();
-
-  if(!host){
-    alert('Configurez l’adresse IP du PC GSX dans les paramètres.');
-    return;
-  }
-
-  if(!/^[a-zA-Z0-9.-]+$/.test(host)||!/^\d{1,5}$/.test(port)||Number(port)>65535){
-    alert('Adresse IP ou port GSX invalide.');
-    return;
-  }
-
-  window.open('http://'+host+':'+port,'_blank','noopener');
-}
 sec=(k,title,body)=>`<div class=card style="padding:0"><button class="acc${S.so[k]?' on':''}" onclick="so('${k}')"><span>${title}</span><svg viewBox="0 0 24 24"><path d="${IC.chv}"/></svg></button>${S.so[k]?`<div class=accb>${body}</div>`:''}</div>`,
 dg=S.diag?`<pre class=mono style="white-space:pre-wrap;font-size:11px;margin:8px 0 0">${esc(JSON.stringify(S.diag.times).slice(0,600))}</pre>`:`<p class=mu>${t('diagn')}</p>`;
 return sec('acc',t('accS'),`<p class=mu>${esc(S.user||'')} · ${Store.mode=='server'?t('msrv'):t('mloc')}</p><p><span class=seg><button class="${S.lang=='fr'?'on':''}" onclick="S.lang='fr';render()">FR</button><button class="${S.lang=='en'?'on':''}" onclick="S.lang='en';render()">EN</button></span></p><p class=mu>${t('utcn')}</p><p><button class=btn onclick="logout()">${t('lo')}</button></p>`)
 +sec('pro',t('proS'),`<p>${seg(t('cptl'),t('fol'),["S.side='cpt';S.crew=null;render()","S.side='fo';S.crew=null;render()"],S.side=='cpt')}</p><div class=fgs><div><label>${t('uname')}</label><input value="${esc(S.uname)}" onchange="S.uname=this.value;S.crew=null"></div></div><p class=mu style="margin:12px 0 6px">${t('ulg')}</p><p>${['FR','EN','NL','DE','ES','IT','PT','AR','PL'].map(l=>`<button class="btn sm${S.ulang.includes(l)?' p':''}" style="margin:0 6px 6px 0" onclick="ulgT('${l}')">${l}</button>`).join('')}</p>`)
-+sec('con',t('conS'),`<b>SimBrief</b><div class=fgs style="margin:8px 0"><div><label>${t('sbu')}</label><input value="${esc(S.sbu)}" onchange="S.sbu=this.value.trim()"></div></div><p><button class="btn p" onclick="syn()">${t('syncnow')}</button></p><hr style="border:0;border-top:1px solid var(--ln);margin:14px 0"><b>VATSIM / vIFF</b><div class=fgs style="margin:8px 0"><div><label>${t('vcid')}</label><input value="${esc(v.cid)}" onchange="S.viff.cid=this.value.trim()"></div></div><p class=mu>${t('vnote')}</p><p><button class=btn onclick="viffPoll()">${t('sync')}</button> <button class=btn onclick="vdgs()">${t('vdgsl')}</button> ${S.viffSt=='ok'?ch('✓ vIFF','ok'):S.viffSt=='off'?ch('vIFF ✕','wn'):''}</p>
-<hr style="border:0;border-top:1px solid var(--ln);margin:14px 0">
-<b>GSX Pro</b>
-<div class=fgs style="margin:8px 0">
-  <div>
-    <label>Adresse IP du PC GSX</label>
-    <input value="${esc(S.gsxHost||'')}" placeholder="192.168.1.XX"
-      onchange="S.gsxHost=this.value.trim()">
-  </div>
-  <div>
-    <label>Port Remote Control</label>
-    <input inputmode=numeric value="${esc(S.gsxPort||'8744')}"
-      onchange="S.gsxPort=this.value.trim()">
-  </div>
-</div>
-<p class=mu>Le PC et l’iPad doivent être connectés au même réseau.</p>
-<hr style="border:0;border-top:1px solid var(--ln);margin:14px 0">
-<b>${t('diag')}</b>${dg}`)
++sec('con',t('conS'),`<b>SimBrief</b><div class=fgs style="margin:8px 0"><div><label>${t('sbu')}</label><input value="${esc(S.sbu)}" onchange="S.sbu=this.value.trim()"></div></div><p><button class="btn p" onclick="syn()">${t('syncnow')}</button></p><hr style="border:0;border-top:1px solid var(--ln);margin:14px 0"><b>VATSIM / vIFF</b><div class=fgs style="margin:8px 0"><div><label>${t('vcid')}</label><input value="${esc(v.cid)}" onchange="S.viff.cid=this.value.trim()"></div></div><p class=mu>${t('vnote')}</p><p><button class=btn onclick="viffPoll()">${t('sync')}</button> <button class=btn onclick="vdgs()">${t('vdgsl')}</button> ${S.viffSt=='ok'?ch('✓ vIFF','ok'):S.viffSt=='off'?ch('vIFF ✕','wn'):''}</p><hr style="border:0;border-top:1px solid var(--ln);margin:14px 0"><b>${t('diag')}</b>${dg}`)
 +sec('app',t('appS'),`<div class=fgs>${col('nv','cnv')}${col('bl','cbl')}${col('bg1','cbg1')}${col('bg2','cbg2')}${col('p','cp')}</div><p class=mu style="margin:12px 0 6px">${t('cpre')}</p><p>${PRE.slice(-2).map((x,i)=>`<button class="btn sm" style="margin:0 6px 6px 0" onclick="thP(${PRE.length-2+i})">${L2(x.n)}</button>`).join('')}</p>`)
 +sec('doc',t('docS'),`<div class=fgs><div><label>${t('bico')}</label><input id=bki maxlength=4 style="text-transform:uppercase" placeholder="LFPG"></div><div><label>${t('bfile')}</label><input id=bkf type=file accept="application/pdf,.pdf"></div></div><p><button class="btn p" onclick="bkAdd()">${t('badd')}</button></p>${S.briefs.length?S.briefs.map(a=>`<span class=ch style="margin:0 8px 6px 0">${a} <button class="btn sm" style="min-height:24px;padding:0 8px;margin-left:6px" onclick="bkDel('${a}')">×</button></span>`).join(''):`<p class=mu>${t('bnone')}</p>`}<div class=fgs style="margin-top:8px"><div><label>${t('eosd')}</label><input value="${esc(S.eos)}" placeholder="https://blackbox711.com/airport-info-charts.html" onchange="S.eos=this.value.trim()"></div></div>`)
 +sec('gat',t('gatS'),`<p><button class=btn onclick="S.sm2='stands';render()">${t('standt')}</button></p>`)}
