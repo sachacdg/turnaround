@@ -570,7 +570,7 @@ return `${o?'':`<div class="card mu">${t('nosync')}</div>`}<div class=bk>${t('sO
 <div class=bk>${t('sWX')}</div><div class=tiles>${tl(t('temsi'),'#5b3fa8',"window.open('https://aviation.meteofrance.fr/','_blank','noopener')")}</div>
 <div class=bk>${t('sBr')}</div><div class=tiles>${ap.map(a=>tl(t('abr')+'<br>'+a,'#6a5a9a',"openBrief('"+a+"')",!S.briefs.includes(a))).join('')}${ap.length?[o.d,o.alt].filter((x,i,a)=>x&&x!='----'&&a.indexOf(x)==i).map(a=>tl(t('eosn')+' ↗<br>'+a,'#7a6a3a',"eosOpen('"+a+"')")).join(''):''}</div>
 <div class=bk>${t('sSAF')}</div><div class=card style="margin:0">${t('asrp')} : ${asr||'<span class=mu>'+t('none')+'</span>'}</div>`}
-function modal3(){
+function modal3gsx(){
 if(S.sm2=='gsx')return `
 <style>
 .gsx-panel{display:grid;grid-template-columns:minmax(245px,34%) 1fr;min-height:440px;max-height:calc(88vh - 100px);background:var(--p1);color:var(--tx);overflow:auto}
