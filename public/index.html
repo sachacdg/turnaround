@@ -771,6 +771,22 @@ return `<div style="margin-bottom:12px"><b>${t('pnc')} : ${c.cab.length}</b> <sp
 /* settings in collapsible panels */
 function so(k){S.so[k]=!S.so[k];render()}
 function ulgT(l){const a=S.ulang,i=a.indexOf(l);i<0?a.push(l):a.splice(i,1);S.crew=null;render()}
+function gsxOpen(){
+  const host=(S.gsxHost||'').trim();
+  const port=String(S.gsxPort||'8744').trim();
+
+  if(!host){
+    alert('Configurez l’adresse IP du PC GSX dans les paramètres.');
+    return;
+  }
+
+  if(!/^[a-zA-Z0-9.-]+$/.test(host)||!/^\d{1,5}$/.test(port)||Number(port)>65535){
+    alert('Adresse IP ou port GSX invalide.');
+    return;
+  }
+
+  window.open('http://'+host+':'+port,'_blank','noopener');
+}
 function V_set(){const v=S.viff,seg=(a,b,f,cur)=>`<span class=seg><button class="${cur?'on':''}" onclick="${f[0]}">${a}</button><button class="${cur?'':'on'}" onclick="${f[1]}">${b}</button></span>`,col=(k,l)=>`<div><label>${t(l)}</label><input type=color value="${S.th[k]}" oninput="thSet('${k}',this.value)" style="width:100%;padding:2px;height:44px"></div>`,
 sec=(k,title,body)=>`<div class=card style="padding:0"><button class="acc${S.so[k]?' on':''}" onclick="so('${k}')"><span>${title}</span><svg viewBox="0 0 24 24"><path d="${IC.chv}"/></svg></button>${S.so[k]?`<div class=accb>${body}</div>`:''}</div>`,
 dg=S.diag?`<pre class=mono style="white-space:pre-wrap;font-size:11px;margin:8px 0 0">${esc(JSON.stringify(S.diag.times).slice(0,600))}</pre>`:`<p class=mu>${t('diagn')}</p>`;
