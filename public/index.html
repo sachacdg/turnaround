@@ -655,7 +655,8 @@ return `
      ${action('Débarquement','deboarding')}
      ${action('Avitaillement','fuel')}
      ${action('Catering','catering')}
-     ${action('Passerelle / Escaliers','stairs')}
+     ${action('Passerelle','jetway')}
+     ${action('Escaliers','stairs')}
      ${action('GPU','gpu')}
      ${action('Repoussage','pushback')}
      ${action('Ménage','cleaning')}
@@ -1071,6 +1072,9 @@ window.GSX = (() => {
     ws.onclose = () => {
       ready = false;
       running = false;
+      pendingId = null;
+      clearTimeout(pendingTimer);
+      pendingTimer = null;
       ws = null;
       if (active) retry();
       if (S.sm2 === 'gsx') render();
