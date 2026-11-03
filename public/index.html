@@ -1098,6 +1098,7 @@ ws.onclose = () => {
   if (active) retry();
   if (S.sm2 === 'gsx') render();
 };
+  }
     function retry() {
     clearTimeout(reconnectTimer);
     if (active) reconnectTimer = setTimeout(connect, 5000);
@@ -1189,7 +1190,7 @@ function action(code){
 );
 
   if(!target){
-    log('Service indisponible dans son état actuel.'), true;
+    log('Service indisponible dans son état actuel.', true);
     return;
   }
 
