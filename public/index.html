@@ -1246,7 +1246,7 @@ ws.onclose = () => {
       x => String(x.id).toLowerCase() === id.toLowerCase()
     ) || null;
   }
-function sendCommand(verb, args, label) {
+function sendCommand(verb, args, code) {
   if (!ws || ws.readyState !== 1 || !ready || !running) {
     log('Action impossible : GSX non connecté ou arrêté.', true);
     return;
@@ -1259,6 +1259,7 @@ function sendCommand(verb, args, label) {
 
   const id = 'turnaround-' + (++commandNo);
   pendingId = id;
+  pendingCode = code;
 
   try {
     ws.send(JSON.stringify({
@@ -1268,7 +1269,9 @@ function sendCommand(verb, args, label) {
       args: args || {}
     }));
 
-    log(label + ' : demande envoyée.');
+    if (SERVICE_MESSAGES[code]) {
+  log(SERVICE_MESSAGES[code].sent);
+}
 
     pendingTimer = setTimeout(() => {
       if (pendingId === id) {
@@ -1288,7 +1291,7 @@ function sendCommand(verb, args, label) {
 
 function action(code){
   if(code==='call'){
-    sendCommand('menu.open',{},'Appel piste');
+    sendCommand('menu.open',{},'call');
     return;
   }
 
@@ -1321,10 +1324,10 @@ function action(code){
   }
 
   sendCommand(
-    'service.trigger',
-    {service:target.id},
-    target.displayName || target.id
-  );
+  'service.trigger',
+  {service:target.id},
+  code
+);
 }
   function feedHtml() {
     return messages.length
