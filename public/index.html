@@ -1094,7 +1094,9 @@ pendingTimer = null;
     if (ws) ws.close();
     ws = null;
     ready = false;
-    running = false;
+    pendingId = null;
+    clearTimeout(pendingTimer);
+    pendingTimer = null;
   }
 
   function service(id) {
