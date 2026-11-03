@@ -992,8 +992,8 @@ window.GSX = (() => {
   let commandNo = 0;
   let pendingId = null;
 
-  const host = '192.168.1.62';
-  const port = '8744';
+  const host = (window.S && S.gsxHost) || '192.168.1.62';
+  const port = (window.S && S.gsxPort) || '8744';
 
   function log(text) {
     messages.unshift({
@@ -1193,5 +1193,3 @@ function action(code){
 </script>
 </body>
 </html>
-
-</body></html>
