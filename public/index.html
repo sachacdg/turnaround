@@ -570,7 +570,6 @@ return `${o?'':`<div class="card mu">${t('nosync')}</div>`}<div class=bk>${t('sO
 <div class=bk>${t('sWX')}</div><div class=tiles>${tl(t('temsi'),'#5b3fa8',"window.open('https://aviation.meteofrance.fr/','_blank','noopener')")}</div>
 <div class=bk>${t('sBr')}</div><div class=tiles>${ap.map(a=>tl(t('abr')+'<br>'+a,'#6a5a9a',"openBrief('"+a+"')",!S.briefs.includes(a))).join('')}${ap.length?[o.d,o.alt].filter((x,i,a)=>x&&x!='----'&&a.indexOf(x)==i).map(a=>tl(t('eosn')+' ↗<br>'+a,'#7a6a3a',"eosOpen('"+a+"')")).join(''):''}</div>
 <div class=bk>${t('sSAF')}</div><div class=card style="margin:0">${t('asrp')} : ${asr||'<span class=mu>'+t('none')+'</span>'}</div>`}
-
 function modal3gsx(){
 if(S.sm2!='gsx')return '';
 
@@ -584,71 +583,308 @@ const action=(label,code,cls='')=>
 
 return `
 <style>
-.piste-window{width:min(980px,100%);padding:0!important;overflow:hidden;background:#fff;color:#222}
-.piste-head{height:58px;background:#183c5b;color:#fff;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
-.piste-head h2{font-size:19px;margin:0;font-weight:700;letter-spacing:.04em}
-.piste-close{background:none;border:0;color:#fff;font-size:25px;padding:4px 8px}
-.piste-layout{display:grid;grid-template-columns:245px minmax(0,1fr);height:min(620px,78vh);min-height:430px}
-.piste-left{background:#202124;color:#fff;padding:15px 13px;display:flex;flex-direction:column;overflow:auto}
-.piste-connection{display:flex;align-items:center;gap:9px;font-size:12px;margin:4px 2px 14px}
-.piste-dot{width:10px;height:10px;border-radius:50%;background:${connected?'#39b86b':'#c94c4c'};flex-shrink:0}
-.piste-refresh{width:100%;height:34px;border:1px solid #555;background:#303236;color:#fff;border-radius:3px;font-size:11px;margin-bottom:13px}
-.piste-buttons{display:flex;flex-direction:column;gap:8px}
-.piste-btn{width:100%;min-height:39px;border:1px solid #555;border-radius:3px;background:#303236;color:#fff;font-size:12px;font-weight:700;letter-spacing:.02em}
-.piste-btn.green{background:#27875c;border-color:#27875c}
-.piste-btn.blue{background:#234d70;border-color:#234d70}
-.piste-btn:disabled{opacity:.55}
-.piste-bottom{margin-top:auto;padding-top:18px}
-.piste-call{width:100%;height:42px;background:#27875c;border:1px solid #27875c;color:#fff;border-radius:3px;font-size:12px;font-weight:800;letter-spacing:.06em}
-.piste-help{display:block;text-align:center;color:#c5c5c5;font-size:11px;margin-top:13px;text-decoration:underline;cursor:pointer}
-.piste-feed{background:#fff;overflow:auto;padding:14px}
-.piste-feed-empty{height:100%;min-height:250px}
+.piste-window{
+ width:min(980px,100%);
+ padding:0!important;
+ overflow:hidden;
+ background:#fff;
+ color:#222
+}
+
+.piste-head{
+ height:58px;
+ background:#183c5b;
+ color:#fff;
+ display:flex;
+ align-items:center;
+ justify-content:space-between;
+ padding:0 20px
+}
+
+.piste-head h2{
+ font-size:19px;
+ margin:0;
+ font-weight:700;
+ letter-spacing:.04em
+}
+
+.piste-close{
+ background:none;
+ border:0;
+ color:#fff;
+ font-size:25px;
+ padding:4px 8px;
+ cursor:pointer
+}
+
+.piste-layout{
+ display:grid;
+ grid-template-columns:245px minmax(0,1fr);
+ height:min(620px,78vh);
+ min-height:430px
+}
+
+/* PANNEAU GAUCHE */
+
+.piste-left{
+ background:#f0f1f3;
+ color:#252a31;
+ padding:15px 13px;
+ display:flex;
+ flex-direction:column;
+ overflow:auto
+}
+
+.piste-connection{
+ display:flex;
+ align-items:center;
+ gap:9px;
+ font-size:12px;
+ margin:4px 2px 14px
+}
+
+.piste-dot{
+ width:10px;
+ height:10px;
+ border-radius:50%;
+ background:${connected?'#39b86b':'#c94c4c'};
+ flex-shrink:0
+}
+
+/* ACTUALISATION */
+
+.piste-refresh{
+ width:100%;
+ height:36px;
+ border:0;
+ background:transparent;
+ color:#4b5967;
+ border-radius:20px;
+ font-size:12px;
+ margin-bottom:13px;
+ cursor:pointer;
+ display:flex;
+ align-items:center;
+ justify-content:center;
+ gap:6px
+}
+
+.piste-refresh:hover{
+ background:#e3e6e9
+}
+
+.piste-refresh-icon{
+ display:inline-block;
+ font-size:18px;
+ line-height:1
+}
+
+.piste-refresh.is-refreshing .piste-refresh-icon{
+ animation:piste-spin .8s ease-in-out
+}
+
+@keyframes piste-spin{
+ from{transform:rotate(0deg)}
+ to{transform:rotate(360deg)}
+}
+
+/* BOUTONS DE SERVICES */
+
+.piste-buttons{
+ display:flex;
+ flex-direction:column;
+ gap:8px
+}
+
+.piste-btn{
+ width:100%;
+ min-height:40px;
+ border:1px solid #d5d9de;
+ border-radius:10px;
+ background:#fff;
+ color:#293746;
+ font-size:12px;
+ font-weight:700;
+ letter-spacing:.02em;
+ cursor:pointer;
+ transition:background .15s ease
+}
+
+.piste-btn:hover{
+ background:#e9edf1
+}
+
+.piste-btn.green{
+ background:#dcefe5;
+ border-color:#c5e3d2;
+ color:#236b49
+}
+
+.piste-btn.green:hover{
+ background:#cce6d8
+}
+
+.piste-btn.blue{
+ background:#dce8f2;
+ border-color:#c7d9e8;
+ color:#234d70
+}
+
+.piste-btn.blue:hover{
+ background:#cedfec
+}
+
+.piste-btn:disabled{
+ opacity:.55;
+ cursor:not-allowed
+}
+
+/* BAS DU PANNEAU */
+
+.piste-bottom{
+ margin-top:auto;
+ padding-top:18px
+}
+
+.piste-call{
+ width:100%;
+ height:42px;
+ background:#27875c;
+ border:0;
+ color:#fff;
+ border-radius:10px;
+ font-size:12px;
+ font-weight:800;
+ letter-spacing:.06em;
+ cursor:pointer
+}
+
+.piste-call:hover{
+ background:#20764f
+}
+
+.piste-help{
+ display:block;
+ text-align:center;
+ color:#65717d;
+ font-size:11px;
+ margin-top:13px;
+ text-decoration:underline;
+ cursor:pointer
+}
+
+/* ZONE DE MESSAGES */
+
+.piste-feed{
+ background:#fff;
+ overflow:auto;
+ padding:14px
+}
+
+.piste-feed-empty{
+ height:100%;
+ min-height:250px
+}
+
+/* AFFICHAGE MOBILE */
+
 @media(max-width:620px){
- .piste-layout{grid-template-columns:190px minmax(0,1fr);height:75vh}
- .piste-left{padding:11px 9px}
- .piste-feed{padding:10px}
+ .piste-layout{
+  grid-template-columns:190px minmax(0,1fr);
+  height:75vh
+ }
+
+ .piste-left{
+  padding:11px 9px
+ }
+
+ .piste-feed{
+  padding:10px
+ }
 }
 </style>
 
 <div class="mdl" onclick="if(event.target===this){S.sm2=null;render()}">
  <div class="mb piste-window">
+
   <div class="piste-head">
    <h2>PISTE</h2>
    <button class="piste-close" onclick="S.sm2=null;render()">×</button>
   </div>
+
   <div class="piste-layout">
+
    <aside class="piste-left">
+
     <div class="piste-connection">
      <span class="piste-dot"></span>
-     <span>État connexion serveur : <b>${connected?'Connecté':'Déconnecté'}</b></span>
+     <span>
+      État connexion serveur :
+      <b>${connected?'Connecté':'Déconnecté'}</b>
+     </span>
     </div>
 
-    <button class="piste-refresh" type="button" data-gsx-action="refresh">Actualiser les messages</button>
+    <button
+     class="piste-refresh"
+     type="button"
+     data-gsx-action="refresh"
+     onclick="this.classList.add('is-refreshing');setTimeout(()=>this.classList.remove('is-refreshing'),800)">
+     <span class="piste-refresh-icon">↻</span>
+     Actualiser les messages
+    </button>
 
     <div class="piste-buttons">
-     ${action(boarding?'Débarquement':'Embarquement',boarding?'deboarding':'boarding','green')}
+
+     ${action(
+      boarding?'Débarquement':'Embarquement',
+      boarding?'deboarding':'boarding',
+      'green'
+     )}
+
      ${action('Avitaillement','fuel')}
+
      ${action('Catering','catering')}
-     ${action(stairs?'Passerelle':'Escaliers','stairs')}
-     ${action(gpu?'GPU OFF':'GPU ON','gpu',gpu?'blue':'green')}
+
+     ${action(
+      stairs?'Passerelle':'Escaliers',
+      'stairs'
+     )}
+
+     ${action(
+      gpu?'GPU OFF':'GPU ON',
+      'gpu',
+      gpu?'blue':'green'
+     )}
+
      ${action('Repoussage','pushback')}
+
      ${action('Ménage','cleaning')}
+
     </div>
 
     <div class="piste-bottom">
-     <button class="piste-call" type="button" data-gsx-action="call">APPEL PISTE</button>
+
+     <button
+      class="piste-call"
+      type="button"
+      data-gsx-action="call">
+      APPEL PISTE
+     </button>
+
      <span class="piste-help">Aide</span>
+
     </div>
+
    </aside>
 
    <main class="piste-feed">
     <div class="piste-feed-empty"></div>
    </main>
+
   </div>
  </div>
 </div>`;
 }
-
 function modal2(){return modal2a()||modal3()}
 function V_set(){const v=S.viff,seg=(a,b,f,cur)=>`<span class=seg><button class="${cur?'on':''}" onclick="${f[0]}">${a}</button><button class="${cur?'':'on'}" onclick="${f[1]}">${b}</button></span>`,col=(k,l)=>`<div><label>${t(l)}</label><input type=color value="${S.th[k]}" oninput="thSet('${k}',this.value)" style="width:100%;padding:2px;height:44px"></div>`;
 return `<div class=card><b>${t('acct')} · ${esc(S.user||'')}</b><p><button class=btn onclick="logout()">${t('lo')}</button></p><p class=mu>${Store.mode=='server'?t('msrv'):t('mloc')}</p></div>
