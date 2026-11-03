@@ -991,9 +991,7 @@ window.GSX = (() => {
   let messages = [];
   let commandNo = 0;
   let pendingId = null;
-
-  const host = (window.S && S.gsxHost) || '192.168.1.62';
-  const port = (window.S && S.gsxPort) || '8744';
+  let pendingTimer = null;
 
   function log(text) {
     messages.unshift({
@@ -1010,6 +1008,8 @@ window.GSX = (() => {
     if (ws && (ws.readyState === 0 || ws.readyState === 1)) return;
 
     clearTimeout(reconnectTimer);
+    const host = (S.gsxHost || '192.168.1.62').trim();
+    const port = (S.gsxPort || '8744').trim();
 
     try {
       ws = new WebSocket(`ws://${host}:${port}/`);
@@ -1096,28 +1096,46 @@ window.GSX = (() => {
       x => String(x.id).toLowerCase() === id.toLowerCase()
     ) || null;
   }
-function sendCommand(verb,args,label){
-  if(!ws || ws.readyState !== 1 || !ready || !running){
+function sendCommand(verb, args, label) {
+  if (!ws || ws.readyState !== 1 || !ready || !running) {
     log('Action impossible : GSX non connecté ou arrêté.');
     return;
   }
 
-  if(pendingId){
+  if (pendingId) {
     log('Une commande est déjà en cours.');
     return;
   }
 
-  const id='turnaround-'+(++commandNo);
-  pendingId=id;
+  const id = 'turnaround-' + (++commandNo);
+  pendingId = id;
 
-  ws.send(JSON.stringify({
-    type:'command',
-    id,
-    verb,
-    args:args || {}
-  }));
+  try {
+    ws.send(JSON.stringify({
+      type: 'command',
+      id,
+      verb,
+      args: args || {}
+    }));
 
-  log(label+' : demande envoyée.');
+    log(label + ' : demande envoyée.');
+
+    pendingTimer = setTimeout(() => {
+      if (pendingId === id) {
+        pendingId = null;
+        pendingTimer = null;
+        log('Délai dépassé : aucune réponse de GSX.');
+      }
+    }, 10000);
+
+  } catch (e) {
+    pendingId = null;
+    clearTimeout(pendingTimer);
+    pendingTimer = null;
+    clearTimeout(pendingTimer);
+    pendingTimer = null;
+    log('Erreur d’envoi : ' + e.message);
+  }
 }
 
 function action(code){
