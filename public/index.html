@@ -978,4 +978,149 @@ applyTheme();render();
 @media(max-width:900px){.bandg{grid-template-columns:minmax(105px,.7fr) minmax(220px,1.3fr)!important}.bandg>.prov-card{grid-column:1;grid-row:1}.bandg>.departure-card{grid-column:2;grid-row:1}.bandg>.route-card{grid-column:1/-1;grid-row:2}.bandg>.arrival-card{grid-column:1/-1;grid-row:3}}
 @media(max-width:560px){.bandg{grid-template-columns:1fr!important}.bandg>.card{grid-column:1!important;grid-row:auto!important}.bandg .dep-times{gap:4px}.bandg .arrival-times{grid-template-columns:minmax(0,1fr) 44px minmax(0,1fr)}}
 </style>
+
+<script>
+/* Client GSX Remote API */
+window.GSX = (() => {
+  let ws = null;
+  let active = false;
+  let reconnectTimer = null;
+  let ready = false;
+  let running = false;
+  let mirror = {};
+  let messages = [];
+
+  const host = '192.168.1.62';
+  const port = '8744';
+
+  function log(text) {
+    messages.unshift({
+      time: new Date().toLocaleTimeString('fr-FR'),
+      text: String(text)
+    });
+    messages = messages.slice(0, 50);
+    if (window.S && S.sm2 === 'gsx') render();
+  }
+
+  function connect() {
+    active = true;
+
+    if (ws && (ws.readyState === 0 || ws.readyState === 1)) return;
+
+    clearTimeout(reconnectTimer);
+
+    try {
+      ws = new WebSocket(`ws://${host}:${port}/`);
+    } catch (e) {
+      log('Erreur WebSocket : ' + e.message);
+      retry();
+      return;
+    }
+
+    ws.onopen = () => log('Connexion réseau établie.');
+
+    ws.onmessage = (event) => {
+      let d;
+      try { d = JSON.parse(event.data); }
+      catch { return; }
+
+      if (d.type === 'hello') {
+        ready = d.protocol === 1;
+        running = !!d.gsxRunning;
+
+        if (ready) {
+          ws.send(JSON.stringify({
+            type: 'subscribe',
+            channels: ['state']
+          }));
+          log(running ? 'GSX détecté.' : 'Serveur connecté, GSX arrêté.');
+        }
+      }
+
+      if (d.type === 'snapshot') {
+        mirror = d.state || {};
+        log('État GSX reçu.');
+        if (S.sm2 === 'gsx') render();
+      }
+
+      if (d.type === 'patch') {
+        const key = (d.path || '').replace(/^\/+/, '');
+        if (key) mirror[key] = d.value;
+        if (S.sm2 === 'gsx') render();
+      }
+
+      if (d.type === 'event' && d.topic === 'engine') {
+        running = !!d.gsxRunning;
+        log(running ? 'GSX démarré.' : 'GSX arrêté.');
+      }
+
+      if (d.type === 'result' && !d.ok) {
+        log('Commande refusée par GSX.');
+      }
+    };
+
+    ws.onerror = () => log('Erreur de connexion au serveur GSX.');
+
+    ws.onclose = () => {
+      ready = false;
+      running = false;
+      ws = null;
+      if (active) retry();
+      if (S.sm2 === 'gsx') render();
+    };
+  }
+
+  function retry() {
+    clearTimeout(reconnectTimer);
+    if (active) reconnectTimer = setTimeout(connect, 5000);
+  }
+
+  function disconnect() {
+    active = false;
+    clearTimeout(reconnectTimer);
+    if (ws) ws.close();
+    ws = null;
+    ready = false;
+    running = false;
+  }
+
+  function service(id) {
+    return (mirror.services || []).find(
+      x => String(x.id).toLowerCase() === id.toLowerCase()
+    ) || null;
+  }
+
+  function feedHtml() {
+    return messages.length
+      ? messages.map(m =>
+          `<div class="piste-message">
+            <span>${esc(m.time)}</span>
+            <div>${esc(m.text)}</div>
+          </div>`
+        ).join('')
+      : '<div class="piste-feed-empty"></div>';
+  }
+
+  return {
+    connect,
+    disconnect,
+    reconnect() {
+      disconnect();
+      connect();
+    },
+    isReady: () => !!(ready && running && ws && ws.readyState === 1),
+    statusText: () => !ws || ws.readyState !== 1
+      ? 'Déconnecté'
+      : !ready ? 'Connexion en cours…'
+      : !running ? 'GSX non démarré'
+      : 'Connecté à GSX',
+    service,
+    feedHtml,
+    get mirror() { return mirror; }
+  };
+})();
+</script>
+</body>
+</html>
+
 </body></html>
