@@ -1161,16 +1161,24 @@ function updateServiceStates(list, initial = false) {
   }
 
   if (d.type === 'snapshot') {
-    mirror = d.state || {};
-    log('État GSX reçu.');
-    if (S.sm2 === 'gsx') render();
+  mirror = d.state || {};
+  updateServiceStates(mirror.services, true);
+  log('État GSX reçu.');
+  if (S.sm2 === 'gsx') render();
+}
+  if (d.type === 'patch') {
+  const key = (d.path || '').replace(/^\/+/, '');
+
+  if (key) {
+    mirror[key] = d.value;
+
+    if (key === 'services') {
+      updateServiceStates(mirror.services);
+    }
   }
 
-  if (d.type === 'patch') {
-    const key = (d.path || '').replace(/^\/+/, '');
-    if (key) mirror[key] = d.value;
-    if (S.sm2 === 'gsx') render();
-  }
+  if (S.sm2 === 'gsx') render();
+}
 
   if (d.type === 'event' && d.topic === 'engine') {
     running = !!d.gsxRunning;
@@ -1178,11 +1186,19 @@ function updateServiceStates(list, initial = false) {
   }
 
   if (d.type === 'result') {
-    if (String(d.id) === String(pendingId)) {
-      pendingId = null;
-      clearTimeout(pendingTimer);
-      pendingTimer = null;
+  if (String(d.id) === String(pendingId)) {
+    pendingId = null;
+    clearTimeout(pendingTimer);
+    pendingTimer = null;
 
+    const messages = SERVICE_MESSAGES[pendingCode];
+
+    if (messages) {
+      log(
+        d.ok ? messages.accepted : messages.refused,
+        !d.ok
+      );
+    } else if (pendingCode !== 'call') {
       log(
         d.ok
           ? 'Commande acceptée par GSX.'
@@ -1190,7 +1206,10 @@ function updateServiceStates(list, initial = false) {
         !d.ok
       );
     }
+
+    pendingCode = null;
   }
+}
 };
 
 ws.onerror = () => log('Erreur de connexion au serveur GSX.', true);
