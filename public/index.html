@@ -994,14 +994,27 @@ window.GSX = (() => {
   let pendingId = null;
   let pendingTimer = null;
 
-  function log(text) {
-    messages.unshift({
-      time: new Date().toLocaleTimeString('fr-FR'),
-      text: String(text)
-    });
-    messages = messages.slice(0, 50);
-    if (S.sm2 === 'gsx') render();
+  let messageNo = 0;
+
+function log(text, isError = false) {
+  const message = {
+    id: ++messageNo,
+    time: new Date().toLocaleTimeString('fr-FR'),
+    text: String(text)
+  };
+
+  messages.unshift(message);
+  messages = messages.slice(0, 50);
+
+  if (isError) {
+    setTimeout(() => {
+      messages = messages.filter(m => m.id !== message.id);
+      if (S.sm2 === 'gsx') render();
+    }, 10000);
   }
+
+  if (S.sm2 === 'gsx') render();
+}
 
   function connect() {
     active = true;
@@ -1015,7 +1028,7 @@ window.GSX = (() => {
     try {
       ws = new WebSocket(`ws://${host}:${port}/`);
     } catch (e) {
-      log('Erreur WebSocket : ' + e.message);
+      log('Erreur WebSocket : ' + e.message, true);
       retry();
       return;
     }
@@ -1062,14 +1075,13 @@ window.GSX = (() => {
     pendingId = null;
 clearTimeout(pendingTimer);
 pendingTimer = null;
-    log(d.ok
-      ? 'Commande acceptée par GSX.'
-      : 'Commande refusée par GSX.');
-  }
-}
-    };
-
-    ws.onerror = () => log('Erreur de connexion au serveur GSX.');
+    log(
+  d.ok
+    ? 'Commande acceptée par GSX.'
+    : 'Commande refusée par GSX.',
+  !d.ok
+);
+    ws.onerror = () => log('Erreur de connexion au serveur GSX.', true);
 
     ws.onclose = () => {
       ready = false;
@@ -1106,12 +1118,12 @@ pendingTimer = null;
   }
 function sendCommand(verb, args, label) {
   if (!ws || ws.readyState !== 1 || !ready || !running) {
-    log('Action impossible : GSX non connecté ou arrêté.');
+    log('Action impossible : GSX non connecté ou arrêté.', true);
     return;
   }
 
   if (pendingId) {
-    log('Une commande est déjà en cours.');
+    log('Une commande est déjà en cours.', true);
     return;
   }
 
@@ -1132,7 +1144,7 @@ function sendCommand(verb, args, label) {
       if (pendingId === id) {
         pendingId = null;
         pendingTimer = null;
-        log('Délai dépassé : aucune réponse de GSX.');
+        log('Délai dépassé : aucune réponse de GSX.', true);
       }
     }, 10000);
 
@@ -1140,7 +1152,7 @@ function sendCommand(verb, args, label) {
     pendingId = null;
     clearTimeout(pendingTimer);
     pendingTimer = null;
-    log('Erreur d’envoi : ' + e.message);
+    log('Erreur d’envoi : ' + e.message, true);
   }
 }
 
@@ -1165,7 +1177,7 @@ function action(code){
   const ids=map[code];
 
   if(!ids){
-    log('Action inconnue.');
+    log('Action inconnue.', true);
     return;
   }
 
@@ -1174,7 +1186,7 @@ function action(code){
 );
 
   if(!target){
-    log('Service indisponible dans son état actuel.');
+    log('Service indisponible dans son état actuel.'), true;
     return;
   }
 
