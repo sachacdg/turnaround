@@ -1059,7 +1059,9 @@ window.GSX = (() => {
 
       if(d.type==='result'){
   if(String(d.id)===String(pendingId)){
-    pendingId=null;
+    pendingId = null;
+clearTimeout(pendingTimer);
+pendingTimer = null;
     log(d.ok
       ? 'Commande acceptée par GSX.'
       : 'Commande refusée par GSX.');
