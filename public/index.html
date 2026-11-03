@@ -1140,8 +1140,6 @@ function sendCommand(verb, args, label) {
     pendingId = null;
     clearTimeout(pendingTimer);
     pendingTimer = null;
-    clearTimeout(pendingTimer);
-    pendingTimer = null;
     log('Erreur d’envoi : ' + e.message);
   }
 }
