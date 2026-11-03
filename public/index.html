@@ -1036,66 +1036,69 @@ function log(text, isError = false) {
     ws.onopen = () => log('Connexion réseau établie.');
 
     ws.onmessage = (event) => {
-      let d;
-      try { d = JSON.parse(event.data); }
-      catch { return; }
+  let d;
+  try { d = JSON.parse(event.data); }
+  catch { return; }
 
-      if (d.type === 'hello') {
-        ready = d.protocol === 1;
-        running = !!d.gsxRunning;
+  if (d.type === 'hello') {
+    ready = d.protocol === 1;
+    running = !!d.gsxRunning;
 
-        if (ready) {
-          ws.send(JSON.stringify({
-            type: 'subscribe',
-            channels: ['state']
-          }));
-          log(running ? 'GSX détecté.' : 'Serveur connecté, GSX arrêté.');
-        }
-      }
+    if (ready) {
+      ws.send(JSON.stringify({
+        type: 'subscribe',
+        channels: ['state']
+      }));
+      log(running ? 'GSX détecté.' : 'Serveur connecté, GSX arrêté.');
+    }
+  }
 
-      if (d.type === 'snapshot') {
-        mirror = d.state || {};
-        log('État GSX reçu.');
-        if (S.sm2 === 'gsx') render();
-      }
+  if (d.type === 'snapshot') {
+    mirror = d.state || {};
+    log('État GSX reçu.');
+    if (S.sm2 === 'gsx') render();
+  }
 
-      if (d.type === 'patch') {
-        const key = (d.path || '').replace(/^\/+/, '');
-        if (key) mirror[key] = d.value;
-        if (S.sm2 === 'gsx') render();
-      }
+  if (d.type === 'patch') {
+    const key = (d.path || '').replace(/^\/+/, '');
+    if (key) mirror[key] = d.value;
+    if (S.sm2 === 'gsx') render();
+  }
 
-      if (d.type === 'event' && d.topic === 'engine') {
-        running = !!d.gsxRunning;
-        log(running ? 'GSX démarré.' : 'GSX arrêté.');
-      }
+  if (d.type === 'event' && d.topic === 'engine') {
+    running = !!d.gsxRunning;
+    log(running ? 'GSX démarré.' : 'GSX arrêté.');
+  }
 
-      if(d.type==='result'){
-  if(String(d.id)===String(pendingId)){
-    pendingId = null;
-clearTimeout(pendingTimer);
-pendingTimer = null;
-    log(
-  d.ok
-    ? 'Commande acceptée par GSX.'
-    : 'Commande refusée par GSX.',
-  !d.ok
-);
-    ws.onerror = () => log('Erreur de connexion au serveur GSX.', true);
-
-    ws.onclose = () => {
-      ready = false;
-      running = false;
+  if (d.type === 'result') {
+    if (String(d.id) === String(pendingId)) {
       pendingId = null;
       clearTimeout(pendingTimer);
       pendingTimer = null;
-      ws = null;
-      if (active) retry();
-      if (S.sm2 === 'gsx') render();
-    };
-  }
 
-  function retry() {
+      log(
+        d.ok
+          ? 'Commande acceptée par GSX.'
+          : 'Commande refusée par GSX.',
+        !d.ok
+      );
+    }
+  }
+};
+
+ws.onerror = () => log('Erreur de connexion au serveur GSX.', true);
+
+ws.onclose = () => {
+  ready = false;
+  running = false;
+  pendingId = null;
+  clearTimeout(pendingTimer);
+  pendingTimer = null;
+  ws = null;
+  if (active) retry();
+  if (S.sm2 === 'gsx') render();
+};
+    function retry() {
     clearTimeout(reconnectTimer);
     if (active) reconnectTimer = setTimeout(connect, 5000);
   }
