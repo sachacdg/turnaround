@@ -993,6 +993,74 @@ window.GSX = (() => {
   let commandNo = 0;
   let pendingId = null;
   let pendingTimer = null;
+  let pendingCode = null;
+  let lastServiceStates = {};
+
+const SERVICE_MESSAGES = {
+  boarding: {
+    sent: "L’équipage est prêt, vous pouvez lancer l’embarquement.",
+    accepted: "Nous transmettons le message à la porte.",
+    started: "Embarquement démarré.",
+    finished: "Embarquement clôturé.",
+    refused: "Impossible pour le moment."
+  },
+  deboarding: {
+    sent: "Demandons le débarquement.",
+    accepted: "Nous transmettons à la porte.",
+    started: "Débutons le débarquement.",
+    finished: "Débarquement terminé.",
+    refused: "Débarquement impossible."
+  },
+  fuel: {
+    sent: "L’avion est sécurisé, les opérations d’avitaillement carburant peuvent débuter.",
+    accepted: "Le camion est en route.",
+    started: "Débutons l’avitaillement carburant.",
+    finished: "Avitaillement terminé, bon vol ;)",
+    refused: "Avitaillement indisponible."
+  },
+  catering: {
+    sent: "Nous sommes prêts pour l’arrivée du catering.",
+    accepted: "Les camions sont en route.",
+    started: "Démarrons le restockage des galleys.",
+    finished: "Opérations de catering terminées.",
+    refused: "Catering indisponible."
+  },
+  stairs: {
+    sent: "Vous pouvez opérer les rampes d’accès.",
+    accepted: "Opération des rampes en cours.",
+    started: "Positionnement des escaliers débuté.",
+    finished: "Escaliers positionnés.",
+    refused: "Escaliers indisponibles."
+  },
+  jetway: {
+    sent: "Demandons l’opération de la passerelle.",
+    accepted: "Opération de la passerelle en cours.",
+    started: "Débutons l’opération de la passerelle.",
+    finished: "Passerelle connectée/déconnectée.",
+    refused: "Passerelle indisponible."
+  },
+  gpu: {
+    sent: "Vous pouvez connecter le groupe.",
+    accepted: "Connexion du groupe en cours.",
+    started: "Plaçons le groupe.",
+    finished: "Groupe connecté.",
+    refused: "Groupe indisponible."
+  },
+  pushback: {
+    sent: "Nous sommes prêts, freins serrés, vous pouvez placer le tracteur.",
+    accepted: "Plaçons le tracteur.",
+    started: "Levons l’appareil.",
+    finished: "Tracteur placé, prêt au repoussage, sélectionnez la direction :",
+    refused: "Tracteur indisponible."
+  },
+  cleaning: {
+    sent: "Demandons le ménage cabine.",
+    accepted: "Ménage en route.",
+    started: "Démarrons le nettoyage cabine.",
+    finished: "La cabine est propre, opération terminée.",
+    refused: "Service ménage indisponible."
+  }
+};
 
   let messageNo = 0;
 
@@ -1015,7 +1083,46 @@ function log(text, isError = false) {
 
   if (S.sm2 === 'gsx') render();
 }
+function updateServiceStates(list, initial = false) {
+  const nextStates = {};
 
+  (Array.isArray(list) ? list : []).forEach(item => {
+    const id = String(item.id || '').toLowerCase();
+    const state = String(item.state || '').toLowerCase();
+
+    if (!id) return;
+
+    const previous = lastServiceStates[id];
+
+    if (!initial && previous && previous !== state) {
+      const code = {
+        boarding: 'boarding',
+        deboarding: 'deboarding',
+        refueling: 'fuel',
+        catering: 'catering',
+        operatestairs: 'stairs',
+        operatejetways: 'jetway',
+        gpu: 'gpu',
+        departure: 'pushback',
+        cleaning: 'cleaning'
+      }[id];
+
+      const messages = SERVICE_MESSAGES[code];
+
+      if (messages && state === 'performing') {
+        log(messages.started);
+      }
+
+      if (messages && state === 'completed') {
+        log(messages.finished);
+      }
+    }
+
+    nextStates[id] = state;
+  });
+
+  lastServiceStates = nextStates;
+}
   function connect() {
     active = true;
 
