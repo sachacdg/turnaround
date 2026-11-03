@@ -588,7 +588,7 @@ const boardingActive=boarding &&
 
 const action=(label,code,cls='')=>
 `<button class="piste-btn ${cls}" type="button"
- data-gsx-action="${code}">${label}</button>`;
+ onclick="GSX.action('${code}')">${label}</button>`;
 
 return `
 <style>
@@ -662,7 +662,7 @@ return `
     </div>
 
     <div class="piste-bottom">
-     <button class="piste-call" type="button" data-gsx-action="call">APPEL PISTE</button>
+     <button class="piste-call" type="button" onclick="GSX.action('call')">APPEL PISTE</button>
     </div>
    </aside>
 
@@ -989,6 +989,8 @@ window.GSX = (() => {
   let running = false;
   let mirror = {};
   let messages = [];
+  let commandNo = 0;
+  let pendingId = null;
 
   const host = '192.168.1.62';
   const port = '8744';
@@ -1054,9 +1056,14 @@ window.GSX = (() => {
         log(running ? 'GSX démarré.' : 'GSX arrêté.');
       }
 
-      if (d.type === 'result' && !d.ok) {
-        log('Commande refusée par GSX.');
-      }
+      if(d.type==='result'){
+  if(String(d.id)===String(pendingId)){
+    pendingId=null;
+    log(d.ok
+      ? 'Commande acceptée par GSX.'
+      : 'Commande refusée par GSX.');
+  }
+}
     };
 
     ws.onerror = () => log('Erreur de connexion au serveur GSX.');
@@ -1089,7 +1096,69 @@ window.GSX = (() => {
       x => String(x.id).toLowerCase() === id.toLowerCase()
     ) || null;
   }
+function sendCommand(verb,args,label){
+  if(!ws || ws.readyState !== 1 || !ready || !running){
+    log('Action impossible : GSX non connecté ou arrêté.');
+    return;
+  }
 
+  if(pendingId){
+    log('Une commande est déjà en cours.');
+    return;
+  }
+
+  const id='turnaround-'+(++commandNo);
+  pendingId=id;
+
+  ws.send(JSON.stringify({
+    type:'command',
+    id,
+    verb,
+    args:args || {}
+  }));
+
+  log(label+' : demande envoyée.');
+}
+
+function action(code){
+  if(code==='call'){
+    sendCommand('menu.open',{},'Appel piste');
+    return;
+  }
+
+  const map={
+    boarding:['Boarding'],
+    deboarding:['Deboarding'],
+    fuel:['Refueling'],
+    catering:['Catering'],
+    stairs:['OperateJetways','OperateStairs'],
+    gpu:['GPU'],
+    pushback:['Departure'],
+    cleaning:['Cleaning']
+  };
+
+  const ids=map[code];
+
+  if(!ids){
+    log('Action inconnue.');
+    return;
+  }
+
+  const target=ids.map(service).find(
+    x=>x && x.canTrigger===true
+  );
+
+  if(!target){
+    log('Service indisponible dans son état actuel.');
+    return;
+  }
+
+  sendCommand(
+    'service.trigger',
+    {service:target.id},
+    target.displayName || target.id
+  );
+}
   function feedHtml() {
     return messages.length
       ? messages.map(m =>
@@ -1104,9 +1173,11 @@ window.GSX = (() => {
   return {
     connect,
     disconnect,
+    action,
     reconnect() {
       disconnect();
       connect();
+      
     },
     isReady: () => !!(ready && running && ws && ws.readyState === 1),
     statusText: () => !ws || ws.readyState !== 1
