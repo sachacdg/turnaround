@@ -1167,9 +1167,9 @@ function action(code){
     return;
   }
 
-  const target=ids.map(service).find(
-    x=>x && x.canTrigger===true
-  );
+  const target = ids.map(service).find(
+  x => x && x.canTrigger !== false
+);
 
   if(!target){
     log('Service indisponible dans son état actuel.');
