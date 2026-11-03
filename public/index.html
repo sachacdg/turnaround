@@ -570,16 +570,25 @@ return `${o?'':`<div class="card mu">${t('nosync')}</div>`}<div class=bk>${t('sO
 <div class=bk>${t('sWX')}</div><div class=tiles>${tl(t('temsi'),'#5b3fa8',"window.open('https://aviation.meteofrance.fr/','_blank','noopener')")}</div>
 <div class=bk>${t('sBr')}</div><div class=tiles>${ap.map(a=>tl(t('abr')+'<br>'+a,'#6a5a9a',"openBrief('"+a+"')",!S.briefs.includes(a))).join('')}${ap.length?[o.d,o.alt].filter((x,i,a)=>x&&x!='----'&&a.indexOf(x)==i).map(a=>tl(t('eosn')+' ↗<br>'+a,'#7a6a3a',"eosOpen('"+a+"')")).join(''):''}</div>
 <div class=bk>${t('sSAF')}</div><div class=card style="margin:0">${t('asrp')} : ${asr||'<span class=mu>'+t('none')+'</span>'}</div>`}
+
 function modal3gsx(){
 if(S.sm2!='gsx')return '';
 
-const connected=!!S.gsxConnected;
-const boarding=!!S.gsxBoarding;
-const stairs=!!S.gsxStairs;
-const gpu=!!S.gsxGpu;
+GSX.connect();
+
+const connected=GSX.isReady();
+const boarding=GSX.service('Boarding');
+const deboarding=GSX.service('Deboarding');
+const gpu=GSX.service('GPU');
+const stairs=GSX.service('OperateStairs');
+const jetway=GSX.service('OperateJetways');
+
+const boardingActive=boarding &&
+  ['requested','performing','completing'].includes(boarding.state);
 
 const action=(label,code,cls='')=>
-`<button class="piste-btn ${cls}" type="button" data-gsx-action="${code}">${label}</button>`;
+`<button class="piste-btn ${cls}" type="button"
+ data-gsx-action="${code}">${label}</button>`;
 
 return `
 <style>
@@ -589,7 +598,6 @@ return `
 .piste-close{background:none;border:0;color:#fff;font-size:25px;padding:4px 8px;cursor:pointer}
 
 .piste-layout{display:grid;grid-template-columns:245px minmax(0,1fr);height:min(620px,78vh);min-height:430px}
-
 .piste-left{background:#f0f1f3;color:#252a31;padding:15px 13px;display:flex;flex-direction:column;overflow:auto}
 .piste-connection{display:flex;align-items:center;gap:9px;font-size:12px;margin:4px 2px 14px}
 .piste-dot{width:10px;height:10px;border-radius:50%;background:${connected?'#39b86b':'#c94c4c'};flex-shrink:0}
@@ -604,17 +612,16 @@ return `
 .piste-btn{width:100%;min-height:40px;border:1px solid #d5d9de;border-radius:10px;background:#fff;color:#293746;font-size:12px;font-weight:700;letter-spacing:.02em;cursor:pointer;transition:background .15s ease}
 .piste-btn:hover{background:#e9edf1}
 .piste-btn.green{background:#dcefe5;border-color:#c5e3d2;color:#236b49}
-.piste-btn.green:hover{background:#cce6d8}
 .piste-btn.blue{background:#dce8f2;border-color:#c7d9e8;color:#234d70}
-.piste-btn.blue:hover{background:#cedfec}
 .piste-btn:disabled{opacity:.55;cursor:not-allowed}
 
 .piste-bottom{margin-top:auto;padding-top:18px}
 .piste-call{width:100%;height:42px;background:#27875c;border:0;color:#fff;border-radius:10px;font-size:12px;font-weight:800;letter-spacing:.06em;cursor:pointer}
-.piste-call:hover{background:#20764f}
 
 .piste-feed{background:#fff;overflow:auto;padding:14px}
 .piste-feed-empty{height:100%;min-height:250px}
+.piste-message{padding:9px 4px;border-bottom:1px solid #edf0f2;font-size:12px;color:#293746}
+.piste-message span{display:block;font-size:10px;color:#87919b;margin-bottom:3px}
 
 @media(max-width:620px){
  .piste-layout{grid-template-columns:190px minmax(0,1fr);height:75vh}
@@ -623,33 +630,33 @@ return `
 }
 </style>
 
-<div class="mdl" onclick="if(event.target===this){S.sm2=null;render()}">
+<div class="mdl" onclick="if(event.target===this){GSX.disconnect();S.sm2=null;render()}">
  <div class="mb piste-window">
   <div class="piste-head">
    <h2>PISTE</h2>
-   <button class="piste-close" onclick="S.sm2=null;render()">×</button>
+   <button class="piste-close" onclick="GSX.disconnect();S.sm2=null;render()">×</button>
   </div>
 
   <div class="piste-layout">
    <aside class="piste-left">
-
     <div class="piste-connection">
      <span class="piste-dot"></span>
-     <span>État connexion serveur : <b>${connected?'Connecté':'Déconnecté'}</b></span>
+     <span>État connexion serveur : <b>${GSX.statusText()}</b></span>
     </div>
 
-    <button class="piste-refresh" type="button" data-gsx-action="refresh"
-     onclick="this.classList.add('is-refreshing');setTimeout(()=>this.classList.remove('is-refreshing'),800)">
+    <button class="piste-refresh" type="button"
+     onclick="GSX.reconnect();this.classList.add('is-refreshing')">
      <span class="piste-refresh-icon">↻</span>
      Actualiser les messages
     </button>
 
     <div class="piste-buttons">
-     ${action(boarding?'Débarquement':'Embarquement',boarding?'deboarding':'boarding')}
+     ${action(boardingActive?'Embarquement en cours':'Embarquement','boarding')}
+     ${action('Débarquement','deboarding')}
      ${action('Avitaillement','fuel')}
      ${action('Catering','catering')}
-     ${action(stairs?'Passerelle':'Escaliers','stairs')}
-     ${action(gpu?'GPU OFF':'GPU ON','gpu')}
+     ${action('Passerelle / Escaliers','stairs')}
+     ${action('GPU','gpu')}
      ${action('Repoussage','pushback')}
      ${action('Ménage','cleaning')}
     </div>
@@ -657,11 +664,10 @@ return `
     <div class="piste-bottom">
      <button class="piste-call" type="button" data-gsx-action="call">APPEL PISTE</button>
     </div>
-
    </aside>
 
    <main class="piste-feed">
-    <div class="piste-feed-empty"></div>
+    ${GSX.feedHtml()}
    </main>
   </div>
  </div>
