@@ -859,7 +859,7 @@ async function startSession(id){
   render();
   welcome();
 }
-function logout(){Store.save(S.user,JSON.parse(snap())).catch(()=>{});S.user=null;S.ofp=null;S.crew=null;S.db={ac:{},rep:[]};S.sg={ofp:null,ls:null};Object.assign(FL,{no:'—',reg:'—',ty:'',d:'----',a:'----',call:'—'});S.col={fpl:1,pax:1,mass:1,val:1};S.au='';S.ae='';S.am='lg';render()}
+function logout(){Store.save(S.user,JSON.parse(snap())).catch(()=>{});S.user=null;S.techlogDefects=[];S.ofp=null;S.crew=null;S.db={ac:{},rep:[]};S.sg={ofp:null,ls:null};Object.assign(FL,{no:'—',reg:'—',ty:'',d:'----',a:'----',call:'—'});S.col={fpl:1,pax:1,mass:1,val:1};S.au='';S.ae='';S.am='lg';render()}
 function welcome(){const w=document.createElement('div');w.className='wel';w.innerHTML=`<img src="${LOGO}" alt=""><h1>${t('welc')}, ${esc(S.uname||S.user)}</h1><p>${t('bonv')}</p>`;document.body.appendChild(w);setTimeout(()=>w.classList.add('out'),1800);setTimeout(()=>w.remove(),2600)}
 function render(){document.documentElement.lang=S.lang;if(!S.user){renderAuth();return}$('#top').style.display=$('#bar').style.display='';const y=$('#main').scrollTop;hdr();bar();
 $('#main').innerHTML=(S.tab!='dash'&&S.msg?`<div class="ban bl" onclick="S.msg='';render()">${S.msg}</div>`:'')+V[S.tab]()+modal()+modal2();$('#main').scrollTop=y;if(S.sm)pad();
