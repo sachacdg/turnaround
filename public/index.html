@@ -160,7 +160,11 @@ function wxo(){S.wxurl=$('#wu').value.trim();if(!/^https:\/\//.test(S.wxurl))ret
 const NT={dep:[['A6551/26','FREQ 118.700MHZ U/S DUE TO MAINT.',1],['A6497/26','HEL ROUTES CLOSED WHEN RWY 02/20 IS USED.',1]],dst:[['A5120/26','ILS RWY 26L UNSERVICEABLE.',1],['A5033/26','CRANE ERECTED 2NM FINAL RWY 27R.',0]],altn:[['A2210/26','TWY B CLSD BTN B2 AND B4.',1]]};
 const hlt=s=>s.replace(/(CLOSED|CLSD|U[/]S|UNSERVICEABLE)/g,'<mark>$1</mark>').replace(/RWY [0-9][0-9][LRC]?([/][0-9][0-9][LRC]?)?/g,m=>`<mark class=a>${m}</mark>`);
 function V_not(){const g={dep:FL.d,dst:FL.a,altn:'EBBR'};return `<div style="display:flex;justify-content:space-between"><div class=seg><button class="${S.imp?'':'on'}" onclick="S.imp=false;render()">OFP</button><button class="${S.imp?'on':''}" onclick="S.imp=true;render()">${t('imp')}</button></div><button class="btn sm">${t('menu')}</button></div>`+Object.keys(g).map(k=>`<h3 style="margin:10px 0 6px">${t(k)} ${g[k]}</h3>`+NT[k].filter(n=>!S.imp||n[2]).map(n=>`<div class=nt><small>${n[0]}</small>${hlt(n[1])}</div>`).join('')).join('')+`<p class=mu>${t('nnote')}</p>`}
-function V_avi(){const o=S.tl.filter(x=>x.st=='OPEN'),d=S.tl.filter(x=>x.st=='DEFERRED'),c=S.tl.filter(x=>x.st=='CLOSED'),cc=x=>x=='OPEN'?'rd':x=='DEFERRED'?'wn':'ok';
+function V_avi(){
+const o=S.tl.filter(x=>x.st=='OPEN'),
+d=S.tl.filter(x=>x.st=='DEFERRED'),
+c=S.tl.filter(x=>x.st=='CLOSED'&&x.closedAt&&Date.now()-Date.parse(x.closedAt)<7*86400000),
+cc=x=>x=='OPEN'?'rd':x=='DEFERRED'?'wn':'ok';
 const it=x=>`<div class=card style="margin:0 0 8px;padding:10px">
   <div style="display:flex;justify-content:space-between;align-items:center">
     <span class=tg>ITEM ${x.ata}</span>
