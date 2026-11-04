@@ -237,7 +237,17 @@ document.head.appendChild(Object.assign(document.createElement('style'),{textCon
 @media(max-width:560px){.bandg{grid-template-columns:1fr!important}.bandg>.card{grid-column:1!important;grid-row:auto!important}.bandg .route-svg{height:58px}.bandg .stand-row{white-space:normal}}
 .blk .bc{font-size:30px;font-weight:800}.blk .bc small{font-size:13px;color:var(--mu);font-weight:600}.blk .tm{font-size:26px;font-weight:800;display:block}.trio{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}.trio>div{cursor:pointer;background:var(--p2);border-radius:6px;padding:4px 8px}.trio b{display:block}
 .pn h3 button{background:none;border:0;color:#fff;padding:0;display:inline-flex}.pn h3 svg{width:18px;height:18px}.hc{width:104px;height:104px;border-radius:50%;border:6px solid var(--bl);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-variant-numeric:tabular-nums;flex-shrink:0}.hc small{font-weight:600;color:var(--mu);font-size:11px}
-.fl tr.sel{background:#ffffff14}.fl .dim{color:var(--mu)}.fl th{font-size:11px}.fl td{color:var(--tx)}.fl td.dim{color:var(--mu)}.fl td.cy{color:var(--cy)}.fl{min-width:620px}.cr{display:flex;gap:12px;padding:14px;align-items:center}.cr svg{width:46px;height:46px;fill:none;stroke:var(--mu);stroke-width:1.4;flex-shrink:0}
+.fl tr.sel{background:#ffffff14}
+.fl tr.fuel-low td,.fl tr.fuel-low td small{
+  background:#8d2525!important;
+  color:#fff!important;
+}
+.fl .dim{color:var(--mu)}
+.fl th{font-size:11px}
+.fl td{color:var(--tx)}
+.fl td.dim{color:var(--mu)}
+.fl td.cy{color:var(--cy)}
+.fl{min-width:700px}.cr{display:flex;gap:12px;padding:14px;align-items:center}.cr svg{width:46px;height:46px;fill:none;stroke:var(--mu);stroke-width:1.4;flex-shrink:0}
 .fgs{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(220px,100%),1fr));gap:12px;min-width:0}.fg>div{min-width:0}.fg input,.fg select,.fg textarea{width:100%;min-width:0}.fgs label{font-size:12px;color:var(--mu);display:block;margin-bottom:4px}.fgs input,.fgs select{width:100%}
 .nt small{position:static;display:block;color:#cde;margin-bottom:2px}.tr2{display:grid;grid-template-columns:repeat(4,1fr) auto;gap:10px;margin-bottom:8px}`}));
 /* helpers */
@@ -410,7 +420,21 @@ const k=S.sm2;if(!k)return'';const x=k.split(':');
 if(x[0]=='nv'){const i=+x[1],r=S.ofp.nav[i],a=S.nv[i]||{};return `<div class=mdl><div class=mb><h2 style="margin-top:0">${t('adjt')} · ${r.id}</h2><div class=fgs><div><label>${t('ta')}</label><input id=nt value="${(a.t||'').replace(':','')}" placeholder="HHMM" inputmode=numeric maxlength=4> <button class="btn sm" onclick="$('#nt').value=new Date().toISOString().slice(11,16).replace(':','')">${t('now')}</button></div><div><label>${t('flv')}</label><input id=nf type=number value="${a.fl!==undefined?a.fl:r.fl}"></div><div><label>${t('rf')}</label><input id=nb type=number value="${a.f||''}" placeholder="${r.fob}"></div></div><p><button class=btn onclick="S.sm2=null;render()">${t('cancel')}</button> <button class="btn p" onclick="nvOk(${i})">${t('apply')}</button></p></div></div>`}
 if(x[0]=='pk'){const p=S.pk[x[1]],f=x[2],lb={p:'park',t:'term',g:'gate'}[f];return `<div class=mdl><div class=mb><h2 style="margin-top:0">${t(lb)}</h2><input id=pv value="${esc(p[f]||'')}" style="width:100%"><p><button class=btn onclick="S.sm2=null;render()">${t('cancel')}</button> <button class="btn p" onclick="S.pk['${x[1]}']['${f}']=$('#pv').value.trim();S.sm2=null;render()">${t('apply')}</button></p></div></div>`}
 if(x[0]=='stands'){return `<div class=mdl><div class=mb style="width:min(780px,100%);max-height:90vh;overflow:auto"><h2 style="margin-top:0">${t('standt')}</h2><p class=mu>${t('rule')}</p><p class=row style="align-items:center">${t('nextns')} ${sw(S.nextNS,'S.nextNS=!S.nextNS;render()')}</p><table><tr><th>${t('co')}</th><th>${t('ap')}</th><th>${t('term')}</th><th>${t('stand')}</th><th>${t('gate')}</th><th></th></tr>${S.stands.map((s,i)=>`<tr>${['co','ap','term','stand','gate'].map(f=>`<td><input value="${esc(s[f])}" style="width:84px" oninput="standField(${i},'${f}',this.value)"></td>`).join('')}<td><button class="btn sm" onclick="S.stands.splice(${i},1);render()">${t('del')}</button></td></tr>`).join('')}<tr>${['co','ap','term','stand','gate'].map(f=>`<td><input id=ns_${f} style="width:84px"></td>`).join('')}<td><button class="btn sm p" onclick="stAdd()">${t('add')}</button></td></tr></table><p><button class="btn p" onclick="S.sm2=null;render()">${t('closeb')}</button></p></div></div>`}return''}
-function nvOk(i){const tt=nT($('#nt').value),f=+$('#nb').value;if(!tt||!f)return alert(t('needt'));S.nv[i]={t:tt,fl:$('#nf').value,f};S.sm2=null;S.sub=false;render()}
+function nvOk(i){
+  const tt=nT($('#nt').value),f=+$('#nb').value;
+  if(!tt||!f)return alert(t('needt'));
+
+  S.nv[i]={t:tt,fl:$('#nf').value,f};
+
+  const row=navRows()[i];
+  if(row&&row.pf>0&&row.fb<row.pf){
+    alert('Attention, fuel mini dépassé au point '+row.r.id);
+  }
+
+  S.sm2=null;
+  S.sub=false;
+  render();
+}
 function standField(i,f,v){if(!S.stands[i])return;S.stands[i][f]=String(v||'').toUpperCase().trim();if(S.user&&typeof Store!=='undefined')Store.save(S.user,JSON.parse(snap())).catch(()=>{})}
 function stAdd(){const r={};['co','ap','term','stand','gate'].forEach(f=>r[f]=$('#ns_'+f).value.toUpperCase().trim());if(!r.co||!r.ap)return;S.stands.push(r);render();if(S.user)Store.save(S.user,JSON.parse(snap())).catch(()=>{})}
 /* notams */
@@ -816,7 +840,38 @@ function V_log(){const o=S.ofp;if(!o)return `<div class="card mu">${t('nosync')}
 const tab=(k,l)=>`<button onclick="S.lt='${k}';render()" style="flex:1;padding:12px;border:0;background:${S.lt==k?'var(--p)':'var(--p2)'};color:var(--tx);font-weight:700;border-radius:8px 8px 0 0">${l}</button>`;
 const head=`<div class=card style="display:flex;align-items:center;gap:16px;flex-wrap:wrap;margin-bottom:4px"><div><b>${o.d}</b> ${hz(FL.std)}Z <span class=ch>${dep?hz(dep.t)+'Z':'----'}</span></div><div class=mu>BLOCK FUEL <span class=ch style="color:var(--tx)">${tn(o.fuel.ramp)}</span></div><div style="flex:1"></div><div><b>${o.a}</b> ${hz(FL.sta)}Z <span class=ch>${done?hz(last.a.t)+'Z':'----'}</span></div>${S.sub?ch('✓ '+t('sent'),'ok'):`<button class="btn sm p" ${done&&okv?'':'disabled'} onclick="S.sub=true;render()">${t('fsub')}</button>`}</div>${!okv&&!S.sub?`<div class="ban rd">${t('needsig')}</div>`:''}<div style="display:flex;gap:4px">${tab('notes',t('notesT'))}${tab('log',t('flog'))}</div>`;
 if(S.lt=='notes')return head+notesView();
-return head+`<div class=card style="border-radius:0 0 10px 10px;overflow-x:auto"><p class=mu>${t('dbl')}</p>${R.length?`<div style="min-width:620px"><table class=fl><tr><th>${t('cwp')}</th><th>${t('clv')}</th><th>${t('ceta')}</th><th>${t('cdur')}</th><th>${t('cbrn')}</th><th>${t('crem')}</th></tr>${R.map(x=>{const A=!!x.a,c=A?' cy':' dim';return `<tr class="${S.sel==x.i?'sel':''}" onclick="rowTap(${x.i})" style="cursor:pointer"><td class=wp>${x.r.id}<small>${x.r.via} ${x.r.nm?x.r.nm+' NM':''}</small></td><td class="v${c}">${x.fl>0?'FL'+x.fl:'—'}${stepAt(x.r)?'<small class=stp>↗ STEP</small>':''}</td><td class="v${c}">${hz(x.tm)}${A?`<small>${hz(x.pt)}</small>`:''}</td><td class="v${c}">${dur(x.d)}</td><td class="v${c}">${Math.round(x.b)}</td><td class="v${c}">${Math.round(x.fb)}${A?`<small>${x.pf}</small>`:''}</td></tr>`}).join('')}</table></div>`:`<div class=mu style="padding:12px 0">Aucun point de navigation disponible dans l’OFP synchronisé.</div>`}</div>`}
+return head+`<div class=card style="border-radius:0 0 10px 10px;overflow-x:auto">
+<p class=mu>${t('dbl')}</p>
+${R.length?`<div style="min-width:700px">
+<table class=fl>
+<tr>
+<th>${t('cwp')}</th>
+<th>${t('clv')}</th>
+<th>${t('ceta')}</th>
+<th>${t('cdur')}</th>
+<th>${t('cbrn')}</th>
+<th>Fuel mini</th>
+<th>${t('crem')}</th>
+</tr>
+${R.map(x=>{
+  const A=!!x.a,c=A?' cy':' dim';
+  const low=x.pf>0&&x.fb<x.pf;
+  return `<tr class="${low?'fuel-low ':''}${S.sel==x.i?'sel':''}"
+    onclick="rowTap(${x.i})" style="cursor:pointer">
+    <td class=wp>${x.r.id}<small>${x.r.via} ${x.r.nm?x.r.nm+' NM':''}</small></td>
+    <td class="v${c}">${x.fl>0?'FL'+x.fl:'—'}${stepAt(x.r)?'<small class=stp>↗ STEP</small>':''}</td>
+    <td class="v${c}">${hz(x.tm)}${A?`<small>${hz(x.pt)}</small>`:''}</td>
+    <td class="v${c}">${dur(x.d)}</td>
+    <td class="v${c}">${Math.round(x.b)}</td>
+    <td class="v">${x.pf>0?Math.round(x.pf):'—'}</td>
+    <td class="v${c}">${Math.round(x.fb)}${A?`<small>${x.pf}</small>`:''}</td>
+  </tr>`;
+}).join('')}
+</table>
+</div>`:`<div class=mu style="padding:12px 0">
+Aucun point de navigation disponible dans l’OFP synchronisé.
+</div>`}</div>`;
+}
 function modal3(){const k=S.sm2;if(k=='tsat'||k=='tobt'){const sat=k=='tsat';return `<div class=mdl onclick="if(event.target==this){S.sm2=null;render()}"><div class=mb><h2 style="margin-top:0">${sat?t('tsatt'):t('tobtt')}</h2><input id=tv inputmode=numeric maxlength=4 placeholder="HHMM" value="${sat?(S.tsat?hz(hmM(S.tsat)):''):hz(S.tobtV||'')}" style="width:100%" onkeydown="if(event.key=='Enter')${sat?'setTsat':'setTobt'}(this.value)"><p><button class=btn onclick="S.sm2=null;render()">${t('cancel')}</button> <button class="btn p" onclick="${sat?'setTsat':'setTobt'}($('#tv').value)">${sat?t('apply'):'Envoyer'}</button>${sat?'':` <button class=btn onclick="vdgs()">${t('vdgsl')}</button>`}</p></div></div>`}
 if(k=='gsx')return modal3gsx();
 if(k!='wx')return'';const o=S.ofp,r=o?[[t('dep'),o.d,o.wx.dep],[t('dst'),o.a,o.wx.dst],[t('altn'),o.alt,o.wx.alt]]:[];
