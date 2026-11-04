@@ -939,7 +939,14 @@ function snap(){const set={};SK.forEach(k=>set[k]=S[k]);set.cid=S.viff.cid;delet
 /* sync with diagnostic */
 async function syn(){if(!S.sbu){S.msg=t('needsb');render();return}S.msg=t('syncing');render();try{const j=await sbFetch(S.sbu),fx=navFixes(j);S.diag={times:j.times||null,fix:fx[1]||fx[0]||null,navCount:fx.length,keys:Object.keys(j)};load(parseOFP(j))}catch(e){S.msg=t('syncerr');render()}}
 /* aircraft acceptance with signature */
-function acBtn(open){const gx=S.sg.ac&&S.sg.ac.reg==FL.reg;return gx?`<span class="ch ok">✓ ${t('accd')} · ${hz(S.sg.ac.t)}Z</span> <img class=sg src="${S.sg.ac.img}" style="width:110px;margin:0 8px" alt=""> <button class="btn sm" onclick="op('ac')">${t('again')}</button>`:`<button class="btn p" ${open?'disabled':''} onclick="op('ac')">${t('accept')}</button>`}
+function acBtn(open){
+  const gx=S.sg.ac&&S.sg.ac.reg==FL.reg;
+  return gx
+    ? `<span class="ch ok">✓ ${t('accd')} · ${hz(S.sg.ac.t)}Z</span>
+       <img class=sg src="${S.sg.ac.img}" style="width:110px;margin:0 8px" alt="">
+       <button class="btn sm" onclick="op('ac')">${t('again')}</button>`
+    : `<button class="btn p" onclick="if(${open ? 'true' : 'false'}&&!confirm('${fr() ? 'Des défauts sont encore ouverts. Confirmez-vous l’acceptation de l’avion ?' : 'Open defects remain. Do you confirm aircraft acceptance?'}'))return;op('ac')">${t('accept')}</button>`;
+}
 function ad(){
   const v=$('#ds').value.trim();
   const cat=$('#at').value.trim();
