@@ -555,7 +555,10 @@ Object.assign(S,{
 });
 Object.assign(FL,{no:'—',reg:'—',ty:'',d:'----',a:'----',call:'—',std:'--:--',sta:'--:--'});
 delete S.tl;delete S.rep;
-Object.defineProperty(S,'tl',{get(){return S.db.ac[FL.reg]||(S.db.ac[FL.reg]=[])},configurable:true});
+Object.defineProperty(S,'tl',{
+  get(){return S.techlogDefects||[]},
+  configurable:true
+});
 Object.defineProperty(S,'rep',{get(){return S.db.rep},configurable:true});
 /* presets and theme */
 PRE.forEach(p=>{p.c.mode=p.c.mode||'dark'});THD.mode='dark';
