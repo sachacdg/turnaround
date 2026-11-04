@@ -205,18 +205,7 @@ async function closeDef(id){
     alert('Impossible de clôturer le défaut : '+e.message);
   }
 }
-  const msg=fr()
-    ?'Confirmer la clôture de ce défaut ?'
-    :'Confirm closure of this defect?';
-
-  if(!confirm(msg))return;
-
-  x.st='CLOSED';
-  x.closedAt=new Date().toISOString();
-  x.closedBy=S.uname||S.user||'Utilisateur';
-
-  render();
-}
+  
 function ad(){const v=$('#ds').value.trim();if(!v)return;const n=413+S.tl.length;S.tl.unshift({id:'TL-0'+n,wo:'WO.1000'+n,ata:$('#at').value.slice(0,2)+'-xx',d:v,st:'OPEN',b:'Pilot',op:new Date().toISOString().slice(0,10)});render()}
 const NV=[['LPPR / 35','TURON9E',12,'CLB','08:39','00:00','4′',9.2],['UDRUB','TURON9E',11,'CLB','08:43','00:04','2′',8.9],['PR674','TURON9E',28,'CLB','08:45','00:06','4′',8.7],['TURON','P600',1,'CLB','08:50','00:10','0′',8.3],['T_O_C','P600',1,'FL240','08:50','00:10','1′',8.2],['LFPG / 26L','',0,'','10:48','01:50','',3.8]];
 function V_log(){const done=!!S.nv[5],tab=(k,l)=>`<button class="${S.lt==k?'on':''}" onclick="S.lt='${k}';render()" style="flex:1;padding:10px;border:0;background:${S.lt==k?'var(--p)':'var(--p2)'};color:#fff;font-weight:700;border-radius:8px 8px 0 0">${l}</button>`;
