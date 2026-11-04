@@ -172,6 +172,10 @@ const it=x=>`<div class=card style="margin:0 0 8px;padding:10px">
   <div style="margin-top:4px">${esc(L2(x.d))}</div>
   ${x.mel?`<div class=mu>${x.mel} · ${x.due}</div>`:''}
 </div>`;
+const col=(label,items)=>`<div style="flex:1;min-width:180px">
+  <h4>${label} (${items.length})</h4>
+  ${items.map(it).join('')||`<span class=mu>${t('nodef')}</span>`}
+</div>`;
 return `<div class=card style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div><span class=mu>${t('reg')}</span><div class=big>${FL.reg}</div><span class=mu>${FL.ty} · FH 24.4 / FC 13</span></div>${ch(o.length?t('dfo'):t('sv'),o.length?'rd':'ok')}<div style="flex:1"></div>${acBtn(o.length)}</div>
 <div class=g3><div class=pn><h3>${t('openi')} (${o.length+d.length})${EX}</h3><div class=pb>${[...o,...d].map(it).join('')||`<span class=mu>${t('nodef')}</span>`}</div></div><div class=pn><h3>${t('addd')}</h3><div class=pb><input id=at
   type=text
