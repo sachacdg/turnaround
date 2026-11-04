@@ -45,6 +45,111 @@ app.put('/api/data',auth,asyncRoute(async(req,res)=>{
  await pool.query(`INSERT INTO user_data(user_id,data,updated_at) VALUES($1,$2::jsonb,NOW()) ON CONFLICT(user_id) DO UPDATE SET data=EXCLUDED.data, updated_at=NOW()`,[req.user.id,data]);
  await pool.query('UPDATE users SET updated_at=NOW() WHERE id=$1',[req.user.id]);return res.json({ok:true});
 }));
+// ===== Shared Techlog =====
+
+function cleanRegistration(value) {
+ return typeof value === 'string'
+  ? value.trim().toUpperCase()
+  : '';
+}
+
+// Retrieve defects for one aircraft.
+// Closed defects remain visible for 7 days.
+app.get('/api/techlog',auth,asyncRoute(async(req,res)=>{
+ const reg=cleanRegistration(req.query.reg);
+
+ if(!/^[A-Z0-9-]{2,12}$/.test(reg))
+  return res.status(400).json({error:'invalid_registration'});
+
+ const result=await pool.query(`
+  SELECT
+   id,
+   category AS ata,
+   description AS d,
+   status AS st,
+   created_by AS b,
+   created_at AS op,
+   closed_at AS "closedAt",
+   closed_by AS "closedBy"
+  FROM techlog_defects
+  WHERE registration=$1
+    AND (status <> 'CLOSED' OR closed_at >= NOW() - INTERVAL '7 days')
+  ORDER BY created_at DESC
+ `,[reg]);
+
+ return res.json({defects:result.rows});
+}));
+
+// Create a new shared defect.
+app.post('/api/techlog',auth,asyncRoute(async(req,res)=>{
+ const reg=cleanRegistration(req.body?.registration);
+ const category=typeof req.body?.category==='string'
+  ? req.body.category.trim()
+  : '';
+ const description=typeof req.body?.description==='string'
+  ? req.body.description.trim()
+  : '';
+
+ if(!/^[A-Z0-9-]{2,12}$/.test(reg))
+  return res.status(400).json({error:'invalid_registration'});
+
+ if(!category||category.length>100)
+  return res.status(400).json({error:'invalid_category'});
+
+ if(!description||description.length>3000)
+  return res.status(400).json({error:'invalid_description'});
+
+ const result=await pool.query(`
+  INSERT INTO techlog_defects
+   (registration,category,description,created_by)
+  VALUES ($1,$2,$3,$4)
+  RETURNING
+   id,
+   category AS ata,
+   description AS d,
+   status AS st,
+   created_by AS b,
+   created_at AS op,
+   closed_at AS "closedAt",
+   closed_by AS "closedBy"
+ `,[reg,category,description,req.user.username]);
+
+ return res.status(201).json({defect:result.rows[0]});
+}));
+
+// Close a defect without deleting its record.
+app.post('/api/techlog/:id/close',auth,asyncRoute(async(req,res)=>{
+ const id=Number(req.params.id);
+
+ if(!Number.isSafeInteger(id)||id<=0)
+  return res.status(400).json({error:'invalid_defect_id'});
+
+ const result=await pool.query(`
+  UPDATE techlog_defects
+  SET
+   status='CLOSED',
+   closed_at=NOW(),
+   closed_by=$2
+  WHERE id=$1
+    AND status IN ('OPEN','DEFERRED')
+  RETURNING
+   id,
+   category AS ata,
+   description AS d,
+   status AS st,
+   created_by AS b,
+   created_at AS op,
+   closed_at AS "closedAt",
+   closed_by AS "closedBy"
+ `,[id,req.user.username]);
+
+ if(!result.rowCount)
+  return res.status(404).json({error:'defect_not_found_or_already_closed'});
+
+ return res.json({defect:result.rows[0]});
+}));
+
+// ===== End Shared Techlog =====
 function viffHeaders(){const key=process.env.VIFF_API_KEY;if(!key)throw Object.assign(new Error('vIFF server key is not configured'),{status:503,code:'viff_not_configured'});const h={Accept:'application/json'};const hn=process.env.VIFF_API_KEY_HEADER||'X-API-Key';if(!/^[A-Za-z0-9-]{1,64}$/.test(hn))throw Object.assign(new Error('Invalid VIFF_API_KEY_HEADER'),{status:500});h[hn]=key;if(process.env.VIFF_AUTH_SCHEME)h.Authorization=`${process.env.VIFF_AUTH_SCHEME} ${key}`;return h;}
 async function upstream(url,options={}){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);try{const r=await fetch(url,{...options,signal:controller.signal,redirect:'error'});const body=await r.text();if(!r.ok)throw Object.assign(new Error(`vIFF returned HTTP ${r.status}`),{status:502,code:'viff_upstream_error',upstreamStatus:r.status});try{return body?JSON.parse(body):{};}catch(_){throw Object.assign(new Error('vIFF response was not JSON'),{status:502,code:'viff_invalid_response'});}}catch(e){if(e.name==='AbortError')throw Object.assign(new Error('vIFF request timed out'),{status:504,code:'viff_timeout'});throw e;}finally{clearTimeout(timer);}}
 function viffUrl(envName,requiredPath){const raw=process.env[envName];if(!raw)throw Object.assign(new Error(`${envName} is not configured`),{status:503,code:'viff_not_configured'});const u=new URL(raw);if(u.protocol!=='https:'||u.hostname!=='api.viffsys.com'||u.pathname!==requiredPath)throw Object.assign(new Error(`Invalid ${envName}`),{status:500,code:'invalid_viff_url'});return u;}
