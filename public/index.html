@@ -161,7 +161,17 @@ const NT={dep:[['A6551/26','FREQ 118.700MHZ U/S DUE TO MAINT.',1],['A6497/26','H
 const hlt=s=>s.replace(/(CLOSED|CLSD|U[/]S|UNSERVICEABLE)/g,'<mark>$1</mark>').replace(/RWY [0-9][0-9][LRC]?([/][0-9][0-9][LRC]?)?/g,m=>`<mark class=a>${m}</mark>`);
 function V_not(){const g={dep:FL.d,dst:FL.a,altn:'EBBR'};return `<div style="display:flex;justify-content:space-between"><div class=seg><button class="${S.imp?'':'on'}" onclick="S.imp=false;render()">OFP</button><button class="${S.imp?'on':''}" onclick="S.imp=true;render()">${t('imp')}</button></div><button class="btn sm">${t('menu')}</button></div>`+Object.keys(g).map(k=>`<h3 style="margin:10px 0 6px">${t(k)} ${g[k]}</h3>`+NT[k].filter(n=>!S.imp||n[2]).map(n=>`<div class=nt><small>${n[0]}</small>${hlt(n[1])}</div>`).join('')).join('')+`<p class=mu>${t('nnote')}</p>`}
 function V_avi(){const o=S.tl.filter(x=>x.st=='OPEN'),d=S.tl.filter(x=>x.st=='DEFERRED'),c=S.tl.filter(x=>x.st=='CLOSED'),cc=x=>x=='OPEN'?'rd':x=='DEFERRED'?'wn':'ok';
-const it=x=>`<div class=card style="margin:0 0 8px;padding:10px"><span class=tg>ITEM ${x.ata}</span>${ch(t(x.st),cc(x.st))}<div style="margin-top:4px">${esc(L2(x.d))}</div>${x.mel?`<div class=mu>${x.mel} · ${x.due}</div>`:''}</div>`,col=(h,a)=>`<div style="flex:1;min-width:200px"><b>${h}</b><div style="margin-top:6px">${a.length?a.map(it).join(''):`<span class=mu><i>${t('nodef')}</i></span>`}</div></div>`;
+const it=x=>`<div class=card style="margin:0 0 8px;padding:10px">
+  <div style="display:flex;justify-content:space-between;align-items:center">
+    <span class=tg>ITEM ${x.ata}</span>
+    <div style="display:flex;align-items:center;gap:8px">
+      ${ch(t(x.st),cc(x.st))}
+      ${x.st!='CLOSED'?`<button onclick="closeDef('${x.id}')" title="${fr()?'Clôturer le défaut':'Close defect'}" style="border:0;background:transparent;color:var(--rd);font-size:20px;font-weight:700;cursor:pointer;padding:0 4px">×</button>`:''}
+    </div>
+  </div>
+  <div style="margin-top:4px">${esc(L2(x.d))}</div>
+  ${x.mel?`<div class=mu>${x.mel} · ${x.due}</div>`:''}
+</div>`;
 return `<div class=card style="display:flex;gap:14px;align-items:center;flex-wrap:wrap"><div><span class=mu>${t('reg')}</span><div class=big>${FL.reg}</div><span class=mu>${FL.ty} · FH 24.4 / FC 13</span></div>${ch(o.length?t('dfo'):t('sv'),o.length?'rd':'ok')}<div style="flex:1"></div>${acBtn(o.length)}</div>
 <div class=g3><div class=pn><h3>${t('openi')} (${o.length+d.length})${EX}</h3><div class=pb>${[...o,...d].map(it).join('')||`<span class=mu>${t('nodef')}</span>`}</div></div><div class=pn><h3>${t('addd')}</h3><div class=pb><input id=at
   type=text
@@ -169,6 +179,22 @@ return `<div class=card style="display:flex;gap:14px;align-items:center;flex-wra
   placeholder="Catégorie / ATA (ex. 32-41)"
   style="width:100%"><p><textarea id=ds placeholder="${t('descr')}"></textarea></p><button class="btn p" onclick="ad()">${t('send')}</button></div></div></div>
 <div class=pn style="margin-bottom:12px"><h3>${t('nxt')} · ${t('downg')} · ${t('lcrs')}</h3><div class=pb style="display:flex;gap:12px;flex-wrap:wrap">${col(t('melc'),d)}${col(t('ddhil'),[])}${col(t('clsd'),c)}</div></div>`}
+function closeDef(id){
+  const x=S.tl.find(v=>v.id==id);
+  if(!x||x.st=='CLOSED')return;
+
+  const msg=fr()
+    ?'Confirmer la clôture de ce défaut ?'
+    :'Confirm closure of this defect?';
+
+  if(!confirm(msg))return;
+
+  x.st='CLOSED';
+  x.closedAt=new Date().toISOString();
+  x.closedBy=S.uname||S.user||'Utilisateur';
+
+  render();
+}
 function ad(){const v=$('#ds').value.trim();if(!v)return;const n=413+S.tl.length;S.tl.unshift({id:'TL-0'+n,wo:'WO.1000'+n,ata:$('#at').value.slice(0,2)+'-xx',d:v,st:'OPEN',b:'Pilot',op:new Date().toISOString().slice(0,10)});render()}
 const NV=[['LPPR / 35','TURON9E',12,'CLB','08:39','00:00','4′',9.2],['UDRUB','TURON9E',11,'CLB','08:43','00:04','2′',8.9],['PR674','TURON9E',28,'CLB','08:45','00:06','4′',8.7],['TURON','P600',1,'CLB','08:50','00:10','0′',8.3],['T_O_C','P600',1,'FL240','08:50','00:10','1′',8.2],['LFPG / 26L','',0,'','10:48','01:50','',3.8]];
 function V_log(){const done=!!S.nv[5],tab=(k,l)=>`<button class="${S.lt==k?'on':''}" onclick="S.lt='${k}';render()" style="flex:1;padding:10px;border:0;background:${S.lt==k?'var(--p)':'var(--p2)'};color:#fff;font-weight:700;border-radius:8px 8px 0 0">${l}</button>`;
