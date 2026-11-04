@@ -187,10 +187,24 @@ return `<div class=card style="display:flex;gap:14px;align-items:center;flex-wra
   placeholder="Catégorie / ATA (ex. 32-41)"
   style="width:100%"><p><textarea id=ds placeholder="${t('descr')}"></textarea></p><button class="btn p" onclick="ad()">${t('send')}</button></div></div></div>
 <div class=pn style="margin-bottom:12px"><h3>${t('nxt')} · ${t('downg')} · ${t('lcrs')}</h3><div class=pb style="display:flex;gap:12px;flex-wrap:wrap">${col(t('melc'),d)}${col(t('ddhil'),[])}${col(t('clsd'),c)}</div></div>`}
-function closeDef(id){
-  const x=S.tl.find(v=>v.id==id);
-  if(!x||x.st=='CLOSED')return;
+async function closeDef(id){
+  const x=S.tl.find(v=>String(v.id)===String(id));
+  if(!x||x.st==='CLOSED')return;
 
+  const msg=fr()
+    ?'Confirmer la clôture de ce défaut ?'
+    :'Confirm closure of this defect?';
+
+  if(!confirm(msg))return;
+
+  try{
+    await Store.techlogClose(id);
+    await loadTechlog(FL.reg);
+    render();
+  }catch(e){
+    alert('Impossible de clôturer le défaut : '+e.message);
+  }
+}
   const msg=fr()
     ?'Confirmer la clôture de ce défaut ?'
     :'Confirm closure of this defect?';
