@@ -800,7 +800,39 @@ $('#main').innerHTML=`<div style="max-width:420px;margin:5vh auto;text-align:cen
 async function authGo(){if(S.authLoading)return;const id=$('#au').value.trim().toLowerCase(),pw=$('#ap2').value;S.au=id;if(id.length<3||pw.length<6){S.ae='e3';return render()}
 S.ae='';S.authLoading=true;render();
 try{if(S.am=='cr')await Store.register(id,pw);await Store.login(id,pw);await startSession(id)}catch(e){S.authLoading=false;S.ae=e.message=='exists'?'e2':e.message=='bad'?'e1':'e4';render()}}
-async function startSession(id){const d=await Store.load(id)||{},s=d.set||{};S.user=id;SK.forEach(k=>{if(s[k]!==undefined)S[k]=s[k]});if(s.cid)S.viff.cid=s.cid;S.viff.apiKey='';S.th=Object.assign({},THD,S.th);S.db=d.db&&d.db.ac?d.db:{ac:{},rep:[]};if(!S.db.rep)S.db.rep=[];const f=d.flight;if(f){S.ofp=f.ofp||null;if(f.FL)Object.assign(FL,f.FL);['rls','sg','ls','col','nv','sub','sel','bd','brd','px','hc','pk','crew','tsat','tobt','tobtV','ctotV','cdm','ng','nq','nraw','bt0','bdur'].forEach(k=>{if(f[k]!==undefined)S[k]=f[k]})}S.briefs=await bKeys();lastSnap=snap();applyTheme();S.tab='dash';render();welcome()}
+async function startSession(id){
+  const d=await Store.load(id)||{},s=d.set||{};
+  S.user=id;
+  SK.forEach(k=>{if(s[k]!==undefined)S[k]=s[k]});
+  if(s.cid)S.viff.cid=s.cid;
+  S.viff.apiKey='';
+  S.th=Object.assign({},THD,S.th);
+  S.db=d.db&&d.db.ac?d.db:{ac:{},rep:[]};
+  if(!S.db.rep)S.db.rep=[];
+
+  const f=d.flight;
+  if(f){
+    S.ofp=f.ofp||null;
+    if(f.FL)Object.assign(FL,f.FL);
+    ['rls','sg','ls','col','nv','sub','sel','bd','brd','px','hc','pk','crew','tsat','tobt','tobtV','ctotV','cdm','ng','nq','nraw','bt0','bdur'].forEach(k=>{
+      if(f[k]!==undefined)S[k]=f[k]
+    });
+  }
+
+  try{
+    await loadTechlog(FL.reg);
+  }catch(e){
+    S.techlogDefects=[];
+    console.error('Techlog loading failed:',e);
+  }
+
+  S.briefs=await bKeys();
+  lastSnap=snap();
+  applyTheme();
+  S.tab='dash';
+  render();
+  welcome();
+}
 function logout(){Store.save(S.user,JSON.parse(snap())).catch(()=>{});S.user=null;S.ofp=null;S.crew=null;S.db={ac:{},rep:[]};S.sg={ofp:null,ls:null};Object.assign(FL,{no:'—',reg:'—',ty:'',d:'----',a:'----',call:'—'});S.col={fpl:1,pax:1,mass:1,val:1};S.au='';S.ae='';S.am='lg';render()}
 function welcome(){const w=document.createElement('div');w.className='wel';w.innerHTML=`<img src="${LOGO}" alt=""><h1>${t('welc')}, ${esc(S.uname||S.user)}</h1><p>${t('bonv')}</p>`;document.body.appendChild(w);setTimeout(()=>w.classList.add('out'),1800);setTimeout(()=>w.remove(),2600)}
 function render(){document.documentElement.lang=S.lang;if(!S.user){renderAuth();return}$('#top').style.display=$('#bar').style.display='';const y=$('#main').scrollTop;hdr();bar();
