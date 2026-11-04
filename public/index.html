@@ -342,7 +342,7 @@ fuel:{taxi:200,enroute_burn:3050,contingency:150,alternate_burn:1100,reserve:105
 navlog:{fix:[mkf('LFPG','','TOC',0,0,7100),mkf('TOC','DCT','CLB',350,17*60,6500),mkf('DJL','UN491','CRZ',350,38*60,5700),mkf('LSA','UM615','CRZ',370,56*60,4900),mkf('TOD','DCT','CRZ',350,70*60,4300),mkf('LFMN','STAR2B','DSC',0,95*60,4050)]},
 notams:{notam:[{icao_id:'LFPG',notam_id:'A5120/26',notam_text:'RWY 08L/26R CLSD 2200-0500 DUE TO WIP.',date_effective:'2026-10-20 22:00',date_expire:'2026-11-12 05:00'},{icao_id:'LFPG',notam_id:'A5033/26',notam_text:'TWY B CLSD BTN B2 AND B4.',date_effective:'2026-10-18 06:00',date_expire:'2026-10-30 18:00'},{icao_id:'LFMN',notam_id:'A2210/26',notam_text:'ILS RWY 04L U/S DUE TO MAINT.',date_effective:'2026-10-22 08:00',date_expire:'2026-10-27 16:00'},{icao_id:'LFMN',notam_id:'A2188/26',notam_text:'CRANE ERECTED 2NM FINAL RWY 04R.',date_effective:'2026-10-10 00:00',date_expire:'2026-12-01 00:00'},{icao_id:'LFML',notam_id:'A3044/26',notam_text:'RWY 13L/31R CLSD.',date_effective:'2026-10-21 00:00',date_expire:'2026-10-26 00:00'},{icao_id:'LFFF',notam_id:'B1022/26',notam_text:'DANGER AREA LFD34 ACTIVE FL000-FL195.',date_effective:'2026-10-24 08:00',date_expire:'2026-10-24 18:00'}]}}}
 /* state */
-Object.assign(S,{ofp:null,col:{fpl:1,pax:1,mass:1,val:1},ex:null,bd:0,brd:'idle',hc:{on:0,t0:0,el:0},tsat:0,tobt:'',sbu:'',side:'cpt',uname:'',viff:{cid:'',tok:'',apiKey:'',on:0},eos:'',nextNS:false,bt0:0,bdur:0,tobtV:'',ctotV:'',cdm:'',viffSt:'',crew:null,sm2:null,sel:-1,ng:'',nq:'',nraw:{},needDemo:0,pk:{dep:{},arr:{}},
+Object.assign(S,{boardMode:'turnaround',ofp:null,col:{fpl:1,pax:1,mass:1,val:1},ex:null,bd:0,brd:'idle',hc:{on:0,t0:0,el:0},tsat:0,tobt:'',sbu:'',side:'cpt',uname:'',viff:{cid:'',tok:'',apiKey:'',on:0},eos:'',nextNS:false,bt0:0,bdur:0,tobtV:'',ctotV:'',cdm:'',viffSt:'',crew:null,sm2:null,sel:-1,ng:'',nq:'',nraw:{},needDemo:0,pk:{dep:{},arr:{}},
 stands:[{co:'AFR',ap:'LFPG',term:'2F',stand:'F30',gate:''},{co:'AFR',ap:'LFPG',term:'2F',stand:'F32',gate:''},{co:'AFR',ap:'LFPG',term:'2E',stand:'E42',gate:''},{co:'AFR',ap:'LFMN',term:'2',stand:'B12',gate:''},{co:'AFR',ap:'LFMN',term:'2',stand:'B14',gate:''},{co:'KLM',ap:'EHAM',term:'',stand:'D12',gate:'D12'},{co:'TVF',ap:'LFPO',term:'W',stand:'W12',gate:''}]});
 const SCH='LF EH EB EL ED ET LI LE GC LP LO LS LK EP ES EF EK EN BI LH LZ LJ EE EV EY LM LG LD LB LR'.split(' '),isSch=c=>SCH.includes(String(c).slice(0,2));
 function pickStand(co,ap){let r=S.stands.filter(x=>x.co==co&&x.ap==ap);if(ap=='LFPG'){r=r.filter(x=>!/^E/i.test(x.stand)||S.nextNS);const f=r.filter(x=>/^F/i.test(x.stand));if(f.length)r=f}return r.length?r[Math.floor(Math.random()*r.length)]:{}}
@@ -432,7 +432,12 @@ return `${S.msg?`<div class="ban bl" onclick="S.msg='';render()">${S.msg}</div>`
 <div class=row>${[['disp','disp',''],['rot','rot',''],['mel','mel',`<span class=bd>${tl.length}</span>`],['sur','sur','<span class=bd>E</span>']].map(x=>`<button class=nb onclick="S.ex=S.ex=='${x[0]}'?null:'${x[0]}';render()">${t(x[1])} ${x[2]}${EX}</button>`).join('')}<button class=nb onclick="S.ex=S.ex=='telex'?null:'telex';render()">${t('telex')} ${EX}</button></div>
 ${ex&&o||ex=='mel'||ex=='telex'?`<div class=card>${det||t('nosync')}</div>`:''}
 <div class=g3>${P('fpl',t('fpl'),`<div class=kv>${kv('Call Sign',o?o.call:'–')}${kv('F-F Factor',o&&o.ff?o.ff:'–')}${kv(t('from'),o?o.d+' '+o.rd:'–')}${kv(t('to'),o?o.a+' '+o.ra:'–')}${kv('SID',o?o.sid:'–')}${kv('STAR',o?o.star:'–')}${kv(t('toalt'),o&&o.toa?o.toa:'–')}${kv(t('alt'),o?o.alt+' '+o.ra2:'–')}${kv('OPTI CLIMB',LEAF)}${kv(t('cont'),o&&o.contr?o.contr:'–')}${kv(t('crz'),o?'FL'+o.crz:'–')}${kv('STEP',o?stepTxt(o):'–')}${kv(t('avgwc'),o?o.wc:'–')}${kv(t('crzsys'),o?'CI '+o.ci:'–')}${kv(t('disa'),o?o.isa:'–')}${kv(t('gnd'),o?o.gd+' NM':'–')}${kv(t('air'),o?o.ad+' NM':'–')}</div>`)}
-${P('pax',t('paxh'),`${cfg.unknown?`<div class="ban rd" style="margin-bottom:8px">Type avion non référencé : capacité cabine à configurer. Les sièges restants sont provisoirement calculés sur le total SimBrief.</div>`:''}${pax>ver&&!cfg.unknown?`<div class="ban rd" style="margin-bottom:8px">⚠️ SimBrief prévoit ${pax} PAX, au-delà de la capacité cabine de ${ver} sièges (${cfg.name}).</div>`:''}<div class=row style="margin-bottom:8px"><button class="btn sm ${S.brd=='open'?'':'p'}" ${!o||S.brd=='closed'?'disabled':''} onclick="boardingToggle()">${S.brd=='open'?t('bclose'):t('bstart')}</button><span class=mu style="align-self:center">${S.brd=='open'?t('bopen'):S.brd=='closed'?t('bdone'):''}</span></div><table><tr><th></th><th class=n>Σ</th><th class=n>C</th><th class=n>Y</th></tr><tr><td>${t('ver')}</td><td class=n>${ver}</td><td class=n>${capC}</td><td class=n>${capY}</td></tr><tr><td class=bl>${t('aboard')}</td><td class="n bl" id=bdn>${bd}</td><td class="n bl" id=bdc>${c}</td><td class="n bl" id=bdy>${y}</td></tr><tr class=mu><td>${t('rest')}</td><td class=n id=bdr>${Math.max(0,pax-bd)}</td><td></td><td></td></tr><tr><td>${t('free')}</td><td class=n id=fr1>${Math.max(0,ver-bd)}</td><td class=n id=fr2>${Math.max(0,capC-c)}</td><td class=n id=fr3>${Math.max(0,capY-y)}</td></tr></table>${pxBlock()}`)}
+${P('pax',t('paxh'),`${cfg.unknown?`<div class="ban rd" style="margin-bottom:8px">Type avion non référencé : capacité cabine à configurer. Les sièges restants sont provisoirement calculés sur le total SimBrief.</div>`:''}${pax>ver&&!cfg.unknown?`<div class="ban rd" style="margin-bottom:8px">⚠️ SimBrief prévoit ${pax} PAX, au-delà de la capacité cabine de ${ver} sièges (${cfg.name}).</div>`:''}<div class=row style="margin-bottom:8px">
+${S.boardMode==='gsx'
+? '<span class=mu>Embarquement piloté automatiquement par GSX</span>'
+: `<button class="btn sm ${S.brd=='open'?'':'p'}" ${!o||S.brd=='closed'?'disabled':''} onclick="boardingToggle()">${S.brd=='open'?t('bclose'):t('bstart')}</button>`}
+<span class=mu style="align-self:center">${S.brd=='open'?t('bopen'):S.brd=='closed'?t('bdone'):''}</span>
+</div><table><tr><th></th><th class=n>Σ</th><th class=n>C</th><th class=n>Y</th></tr><tr><td>${t('ver')}</td><td class=n>${ver}</td><td class=n>${capC}</td><td class=n>${capY}</td></tr><tr><td class=bl>${t('aboard')}</td><td class="n bl" id=bdn>${bd}</td><td class="n bl" id=bdc>${c}</td><td class="n bl" id=bdy>${y}</td></tr><tr class=mu><td>${t('rest')}</td><td class=n id=bdr>${Math.max(0,pax-bd)}</td><td></td><td></td></tr><tr><td>${t('free')}</td><td class=n id=fr1>${Math.max(0,ver-bd)}</td><td class=n id=fr2>${Math.max(0,capC-c)}</td><td class=n id=fr3>${Math.max(0,capY-y)}</td></tr></table>${pxBlock()}`)}
 ${P('mass',t('mass'),`<table><tr><th></th><th class=n>${t('act')}</th><th class=n>${t('gap')}</th><th class=n>${t('margin')}</th></tr><tr><td>${t('dow')}</td><td class=n>${cell(w.dow)}</td><td class=n>${dv(w.dow,w.dow)}</td><td></td></tr><tr><td>${t('zfw')}</td><td class=n>${cell(zfw)}</td><td class=n>${dv(zfw,w.zfw)}</td><td class=n>${o?tn(w.mzfw-zfw):'–'}</td></tr><tr><td>${t('tow')}</td><td class=n>${cell(tow)}</td><td class=n>${dv(tow,w.tow)}</td><td class=n>${o?tn(w.mtow-tow):'–'}</td></tr><tr><td>${t('law')}</td><td class=n>${cell(law)}</td><td class=n>${dv(law,w.ldw)}</td><td class=n>${o?tn(w.mldw-law):'–'}</td></tr><tr><td>${t('block')}</td><td class=n>${cell(blk)}</td><td class=n>${o?dv(blk,o.fuel.ramp):'–'}</td><td></td></tr></table><div style="display:flex;gap:14px;align-items:center;margin-top:10px"><div class=hc><span id=hcv style="font-size:20px">${hcTxt()}</span><small>${t('hrem')}</small></div><div><div class=mu>${t('holdt')}</div><b style="font-size:22px">${holdMin()} min</b><div style="margin-top:6px"><button class="btn sm ${S.hc.on?'':'p'}" onclick="hcT('go')">${S.hc.on?t('hstop'):t('hstart')}</button> <button class="btn sm" onclick="hcT('r')">${t('hreset')}</button></div></div></div><p class=mu>${t('minto')} ${o?tn(o.fuel.minto):'–'} · ${t('mdgt')} ${o?tn(o.fuel.alt+o.fuel.res):'–'}<br>${t('crw')} 2/${nPnc(S.ls[0])} · ${t('wat')} <input type=number value="${S.water}" style="width:64px;min-height:30px;padding:2px 6px" onchange="S.water=+this.value"> %</p>`)}</div>
 ${P('val',t('val'),`<div class=g3 style="margin:0"><div><div class=mu style="font-weight:700;margin-bottom:6px">${t('lsin')}</div><table><tr><th></th><th>OFP</th><th>${t('lscol')}</th><th>Δ</th></tr>${rows}</table><p class=mu>${t('tol')}</p></div><div>${sc('ofp',t('ofp')+' '+S.rls,false,t('nosig'))}</div><div>${sc('ls',t('ls'),bad,bad?t('blk'):t('nosig'))}</div></div>`)}`}
 /* crew */
@@ -659,7 +664,7 @@ setInterval(async()=>{
     techlogPollBusy=false;
   }
 },10000);
-const SK=['lang','side','uname','sbu','eos','th','stands','nextNS','gsxHost','gsxPort'];
+const SK=['lang','side','uname','sbu','eos','th','stands','nextNS','gsxHost','gsxPort','boardMode'];
 function snap(){const set={};SK.forEach(k=>set[k]=S[k]);set.cid=S.viff.cid;delete set.viffApiKey;delete set.apiKey;const ac={};for(const k in S.db.ac)if(k!='—')ac[k]=S.db.ac[k];const flight={ofp:S.ofp||null,FL:{no:FL.no,reg:FL.reg,ty:FL.ty,d:FL.d,a:FL.a,call:FL.call,std:FL.std,sta:FL.sta},rls:S.rls,sg:S.sg,ls:S.ls,col:S.col,nv:S.nv,sub:S.sub,sel:S.sel,bd:S.bd,brd:S.brd,px:S.px,hc:S.hc,pk:S.pk,crew:S.crew,tsat:S.tsat,tobt:S.tobt,tobtV:S.tobtV,ctotV:S.ctotV,cdm:S.cdm,ng:S.ng,nq:S.nq,nraw:S.nraw,bt0:S.bt0,bdur:S.bdur};return JSON.stringify({set,db:{ac,rep:S.db.rep,duty:S.db.duty,hist:S.db.hist,notes:S.db.notes},flight})}
 let lastSnap='';setInterval(()=>{if(!S.user)return;const s=snap();if(s!==lastSnap){lastSnap=s;Store.save(S.user,JSON.parse(s)).catch(()=>{})}},2500);
 /* briefings PDF (IndexedDB, per account) */
@@ -886,7 +891,23 @@ function pxBlock(){const c=(l,v)=>`<div><b>${v}</b><span>${l}</span></div>`,P=S.
 /* live updates without re-rendering */
 function paxUpd(){const tot=Number(S.ls[0]||0),cfg=cabinCapacity(),ver=cfg.total,capC=cfg.C,capY=cfg.Y,y=Math.round(S.bd*(capY/Math.max(1,ver))),c=S.bd-y,s=(id,v)=>{const e=document.getElementById(id);if(e)e.textContent=v};s('bdn',S.bd);s('bdc',c);s('bdy',y);s('bdr',Math.max(0,tot-S.bd));s('fr1',Math.max(0,ver-S.bd));s('fr2',Math.max(0,capC-c));s('fr3',Math.max(0,capY-y))}
 function boardingToggle(){if(S.brd=='open'){S.bd=Number(S.ofp&&S.ofp.w&&S.ofp.w.pax||S.ls[0]||0);S.ls[0]=Number(S.ofp&&S.ofp.w&&S.ofp.w.pax||S.ls[0]||0);S.brd='closed';S.bt0=0;}else if(S.brd!='closed'){S.brd='open';S.bt0=0;S.bd=0;}render()}
-function boardTick(){if(S.brd=='idle'){S.bt0=0;return}if(S.brd!='open')return;const tot=S.ls[0];if(!S.bt0){S.bt0=Date.now();S.bdur=Math.round(1200000*tot/150*(.9+Math.random()*.2));S.bd=0}const n=Math.min(tot,Math.floor((Date.now()-S.bt0)/S.bdur*tot));if(n!=S.bd){S.bd=n;paxUpd()}}
+function boardTick(){if(S.boardMode==='gsx')return;if(S.brd=='idle'){S.bt0=0;return}if(S.brd!='open')return;const tot=S.ls[0];if(!S.bt0){S.bt0=Date.now();S.bdur=Math.round(1200000*tot/150*(.9+Math.random()*.2));S.bd=0}const n=Math.min(tot,Math.floor((Date.now()-S.bt0)/S.bdur*tot));if(n!=S.bd){S.bd=n;paxUpd()}}
+function gsxBoardingSync(state){
+  if(S.boardMode!=='gsx')return;
+
+  if(state==='performing' && S.brd!=='open'){
+    S.brd='open';
+    S.bd=0;
+    S.bt0=0;
+    if(S.tab==='dash')render();
+  }
+
+  if(state==='completed' && S.brd==='open'){
+    S.brd='closed';
+    S.bt0=0;
+    if(S.tab==='dash')render();
+  }
+}
 function ctotColor(){
   if(!S.ctotV)return 'var(--am)';
 
@@ -1158,7 +1179,14 @@ return sec('acc',t('accS'),`<p class=mu>${esc(S.user||'')} · ${Store.mode=='ser
 <p class=mu>
   Même réseau local iPad/PC · GSX Pro 4.0.6+ · Port par défaut 8744.
 </p>
-
+<p style="margin-top:12px">
+  <label style="display:flex;align-items:center;gap:8px">
+    <input type="checkbox"
+      ${S.boardMode==='gsx'?'checked':''}
+      onchange="S.boardMode=this.checked?'gsx':'turnaround';S.brd='idle';S.bd=0;S.bt0=0;render()">
+    Utiliser GSX pour piloter l’embarquement
+  </label>
+</p>
 <p>
   <button class="btn p" onclick="gsxOpen()">
     Ouvrir l’interface GSX
@@ -1346,6 +1374,7 @@ function updateServiceStates(list, initial = false) {
   });
 
   lastServiceStates = nextStates;
+  gsxBoardingSync(nextStates.boarding);
 }
   function connect() {
     active = true;
