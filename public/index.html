@@ -1024,27 +1024,24 @@ function acBtn(open){
        <button class="btn sm" onclick="op('ac')">${t('again')}</button>`
     : `<button class="btn p" onclick="if(${open ? 'true' : 'false'}&&!confirm('${fr() ? 'Des défauts sont encore ouverts. Confirmez-vous l’acceptation de l’avion ?' : 'Open defects remain. Do you confirm aircraft acceptance?'}'))return;op('ac')">${t('accept')}</button>`;
 }
-function ad(){
+async function ad(){
   const v=$('#ds').value.trim();
   const cat=$('#at').value.trim();
 
   if(!cat)return alert('Veuillez renseigner une catégorie.');
   if(!v)return alert('Veuillez décrire le défaut.');
 
-  const n=S.tl.length+1;
+  if(!FL.reg||FL.reg==='—')
+    return alert('Aucune immatriculation valide.');
 
-  S.tl.unshift({
-    id:'TL-'+String(n).padStart(4,'0'),
-    wo:'WO.'+(1000000+n),
-    ata:cat,
-    d:v,
-    st:'OPEN',
-    b:'Pilot',
-    op:new Date().toISOString().slice(0,10)
-  });
-
-  S.sg.ac=null;
-  render();
+  try{
+    await Store.techlogAdd(FL.reg,cat,v);
+    await loadTechlog(FL.reg);
+    S.sg.ac=null;
+    render();
+  }catch(e){
+    alert('Impossible d’ajouter le défaut : '+e.message);
+  }
 }
 /* crew */
 function V_crew(){const o=S.ofp;if(!o)return `<div class="card mu">${t('nocrew')}</div>`;if(!S.crew)S.crew=mkCrew();const c=S.crew,ts=tsvLeft(),
