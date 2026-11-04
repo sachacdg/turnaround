@@ -288,7 +288,8 @@ crz:Math.round(n(g(j,'general.initial_altitude',0))/100),ci:g(j,'general.costind
 fuel:{taxi:n(g(j,'fuel.taxi',0)),trip:n(g(j,'fuel.enroute_burn',0)),cont:n(g(j,'fuel.contingency',0)),alt:n(g(j,'fuel.alternate_burn',0)),res:n(g(j,'fuel.reserve',0)),ramp:n(g(j,'fuel.plan_ramp',0)),minto:n(g(j,'fuel.min_takeoff',0)),flow:n(g(j,'fuel.avg_fuel_flow',0))},
 w:{dow:n(g(j,'weights.oew',0)),pax:n(g(j,'weights.pax_count',0)),zfw:n(g(j,'weights.est_zfw',0)),tow:n(g(j,'weights.est_tow',0)),ldw:n(g(j,'weights.est_ldw',0)),mzfw:n(g(j,'weights.max_zfw',0)),mtow:n(g(j,'weights.max_tow',0)),mldw:n(g(j,'weights.max_ldw',0))},
 rmk:g(j,'general.dx_rmk',''),rel:g(j,'general.release','1'),gen:hmE(g(j,'params.time_generated',0)),date:new Date(TS(tm.sched_out)||TS(tm.est_out)||Date.now()).toISOString().slice(0,10),rid:String(g(j,'params.request_id',g(j,'params.sequence_id','')))+'|'+String(g(j,'params.time_generated','')),
-wx:{dep:[g(j,'weather.orig_metar',''),g(j,'weather.orig_taf','')],dst:[g(j,'weather.dest_metar',''),g(j,'weather.dest_taf','')],alt:[g(j,'weather.altn_metar',''),g(j,'weather.altn_taf','')]},ff:g(j,'general.fuel_factor',''),toa:g(j,'takeoff_altn.icao_code',''),ra2:g(j,'alternate.plan_rwy',''),contr:g(j,'general.cont_rule',''),nav:fx.map((f,i)=>({id:String(f.ident||f.fix_ident||f.waypoint||f.name||f.icao_code||f.fix||('WP'+(i+1))),via:String(f.via_airway||f.airway||f.via||''),st:String(f.stage||f.type||''),fl:Math.round(n(f.altitude_feet??f.altitude_ft??f.altitude??f.flightlevel??f.fl)/100)||Math.round(n(f.altitude_feet??f.altitude_ft??f.altitude??f.flightlevel??f.fl)),nm:n(f.distance??f.distance_nm??f.dist),tt:DS(f.time_total??f.ete_total??f.elapsed_time??f.time??f.ete),fob:n(f.fuel_plan_onboard??f.fuel_remaining??f.fuel??f.fob)})),
+wx:{dep:[g(j,'weather.orig_metar',''),g(j,'weather.orig_taf','')],dst:[g(j,'weather.dest_metar',''),g(j,'weather.dest_taf','')],alt:[g(j,'weather.altn_metar',''),g(j,'weather.altn_taf','')]},ff:g(j,'general.fuel_factor',''),toa:g(j,'takeoff_altn.icao_code',''),ra2:g(j,'alternate.plan_rwy',''),contr:g(j,'general.cont_rule',''),nav:fx.map((f,i)=>({id:String(f.ident||f.fix_ident||f.waypoint||f.name||f.icao_code||f.fix||('WP'+(i+1))),via:String(f.via_airway||f.airway||f.via||''),st:String(f.stage||f.type||''),fl:Math.round(n(f.altitude_feet??f.altitude_ft??f.altitude??f.flightlevel??f.fl)/100)||Math.round(n(f.altitude_feet??f.altitude_ft??f.altitude??f.flightlevel??f.fl)),nm:n(f.distance??f.distance_nm??f.dist),tt:DS(f.time_total??f.ete_total??f.elapsed_time??f.time??f.ete),fob:n(f.fuel_plan_onboard??f.fuel_remaining??f.fuel??f.fob),
+fmin:n(f.fuel_min_onboard)})),
 nt:nt.map(x=>({ap:x.location_icao||x.icao_id||x.location_id||x.icao||'',id:x.notam_id||x.notam_nrc||x.id||'',txt:x.notam_text||x.notam_raw||x.text||'',raw:x.notam_raw||x.notam_text||x.text||'',from:fD(x.date_effective||x.effective),to:fD(x.date_expire||x.expire)})),
 pdf:g(j,'files.pdf.link','')?(g(j,'files.directory','')+g(j,'files.pdf.link','')):'',charts:(()=>{const m=g(j,'images.map',[]),a=Array.isArray(m)?m:[m],d=g(j,'images.directory','');return a.filter(x=>x&&x.link).map(x=>({n:x.name||x.link,u:d+x.link}))})()};
 const ic=g(j,'general.icao_airline','');o.iata=(CO[ic]||[ic])[0];o.no=o.iata+o.num;if(!o.blk&&o.staMs&&o.stdMs)o.blk=(o.staMs-o.stdMs)/60000;if(!o.staMs&&o.stdMs&&o.blk)o.staMs=o.stdMs+o.blk*60000;return o}
@@ -404,9 +405,10 @@ function navRows(){
  // Accept seconds, minutes, HH:MM, HH:MM:SS and ISO-like duration strings.
  const secs=v=>{if(v==null||v==='')return 0;if(typeof v==='number')return v;const s=String(v).trim();if(/^\d+(\.\d+)?$/.test(s))return Number(s);const m=s.match(/^(\d+):(\d{1,2})(?::(\d{1,2}))?$/);return m?(+m[1]*3600+(+m[2])*60+(+(m[3]||0))):0};
  const raw=Array.isArray(o.nav)?o.nav:(o.nav&&typeof o.nav==='object'?Object.values(o.nav):[]);
- const n=raw.filter(r=>r&&typeof r==='object').map((r,i)=>({id:r.id||r.ident||r.name||r.fix||('WP'+(i+1)),via:r.via||r.via_airway||'',st:r.st||r.stage||'',fl:Number(r.fl||r.altitude_feet/100||0),nm:Number(r.nm||r.distance||0),tt:secs(r.tt??r.time_total??r.elapsed_time),fob:Number(r.fob??r.fuel_plan_onboard??r.fuel_remaining??0)}));
+ const n=raw.filter(r=>r&&typeof r==='object').map((r,i)=>({id:r.id||r.ident||r.name||r.fix||('WP'+(i+1)),via:r.via||r.via_airway||'',st:r.st||r.stage||'',fl:Number(r.fl||r.altitude_feet/100||0),nm:Number(r.nm||r.distance||0),tt:secs(r.tt??r.time_total??r.elapsed_time),fob:Number(r.fob??r.fuel_plan_onboard??r.fuel_remaining??0),
+fmin:Number(r.fmin??r.fuel_min_onboard??0)}));
  const a0=S.nv[0],t0=a0?mm(a0.t):mm(hmM(o.offMs)),f0=a0?Number(a0.f):(n[0]?n[0].fob:0);
- return n.map((r,i)=>{const a=S.nv[i],pt=hmM((Number(o.offMs)||0)+r.tt*1000),pf=r.fob,tm=a&&a.t?a.t:pt,fb=a&&a.f!==undefined?Number(a.f):pf,d=((mm(tm)-t0)+1440)%1440;return{r,i,a,pt,pf,tm,fb,fl:a&&a.fl!==''?a.fl:r.fl,d,b:f0-fb}})
+ return n.map((r,i)=>{const a=S.nv[i],pt=hmM((Number(o.offMs)||0)+r.tt*1000),pf=r.fob,tm=a&&a.t?a.t:pt,fb=a&&a.f!==undefined?Number(a.f):pf,d=((mm(tm)-t0)+1440)%1440;return{r,i,a,pt,pf,fmin:r.fmin,tm,fb,fl:a&&a.fl!==''?a.fl:r.fl,d,b:f0-fb}})
 }
 let lastTap={i:-1,t:0};function rowTap(i){const n=Date.now();S.sel=i;if(lastTap.i==i&&n-lastTap.t<450){S.sm2='nv:'+i;lastTap={i:-1,t:0}}else lastTap={i,t:n};render()}
 function V_log(){const o=S.ofp;if(!o)return `<div class="card mu">${t('nosync')}</div>`;const R=navRows(),last=R[R.length-1],done=last&&last.a,dep=S.nv[0];
@@ -427,7 +429,7 @@ function nvOk(i){
   S.nv[i]={t:tt,fl:$('#nf').value,f};
 
   const row=navRows()[i];
-  if(row&&row.pf>0&&row.fb<row.pf){
+  if(row&&row.fmin>0&&row.fb<row.fmin){
     alert('Attention, fuel mini dépassé au point '+row.r.id);
   }
 
@@ -855,7 +857,7 @@ ${R.length?`<div style="min-width:700px">
 </tr>
 ${R.map(x=>{
   const A=!!x.a,c=A?' cy':' dim';
-  const low=x.pf>0&&x.fb<x.pf;
+  const low=x.fmin>0&&x.fb<x.fmin;
   return `<tr class="${low?'fuel-low ':''}${S.sel==x.i?'sel':''}"
     onclick="rowTap(${x.i})" style="cursor:pointer">
     <td class=wp>${x.r.id}<small>${x.r.via} ${x.r.nm?x.r.nm+' NM':''}</small></td>
@@ -863,7 +865,7 @@ ${R.map(x=>{
     <td class="v${c}">${hz(x.tm)}${A?`<small>${hz(x.pt)}</small>`:''}</td>
     <td class="v${c}">${dur(x.d)}</td>
     <td class="v${c}">${Math.round(x.b)}</td>
-    <td class="v">${x.pf>0?Math.round(x.pf):'—'}</td>
+    <td class="v">${x.fmin>0?Math.round(x.fmin):'—'}</td>
     <td class="v${c}">${Math.round(x.fb)}${A?`<small>${x.pf}</small>`:''}</td>
   </tr>`;
 }).join('')}
