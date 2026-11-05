@@ -500,7 +500,28 @@ return `${o?'':`<div class="card mu">${t('nosync')}</div>`}<div class=bk>${t('sO
 /* settings */
 const THD={nv:'#3b6a66',bl:'#8fd0c0',bg1:'#4a4a4f',bg2:'#2b2b2f',p:'#2d2d31'},PRE=[{n:'Sarcelle|Teal',c:THD},{n:'Ambre|Amber',c:{nv:'#7a5a2a',bl:'#f0b45a',bg1:'#4d4a45',bg2:'#2c2a27',p:'#33302c'}},{n:'Violet|Violet',c:{nv:'#4f4a82',bl:'#b6a8ff',bg1:'#4a4955',bg2:'#2a2a33',p:'#303039'}},{n:'Graphite|Graphite',c:{nv:'#4a4f57',bl:'#cfd6df',bg1:'#505357',bg2:'#2d2f32',p:'#35373b'}}];
 S.th=Object.assign({},THD,(()=>{try{return JSON.parse(localStorage.getItem('ta_th')||'{}')}catch(e){return{}}})());
-function applyTheme(){const c=S.th,r=document.documentElement.style;r.setProperty('--nv',c.nv);r.setProperty('--bl',c.bl);r.setProperty('--cy',c.bl);r.setProperty('--p',c.p);let e=document.getElementById('thst');if(!e){e=document.createElement('style');e.id='thst';document.head.appendChild(e)}e.textContent='body{background:linear-gradient(180deg,'+c.bg1+' 0%,'+c.bg2+' 45%,#151517 100%) fixed}';try{localStorage.setItem('ta_th',JSON.stringify(c))}catch(x){}}
+function applyTheme(){
+  const c=S.th,r=document.documentElement.style;
+  r.setProperty('--nv',c.nv);
+  r.setProperty('--bl',c.bl);
+  r.setProperty('--cy',c.bl);
+  r.setProperty('--p',c.p);
+
+  let e=document.getElementById('thst');
+  if(!e){
+    e=document.createElement('style');
+    e.id='thst';
+    document.head.appendChild(e);
+  }
+
+  const bg=S.user&&S.bgImage
+    ? 'linear-gradient(180deg,rgba(15,15,20,.28),rgba(15,15,20,.48)),url("'+S.bgImage+'") center/cover fixed'
+    : 'linear-gradient(180deg,'+c.bg1+' 0%,'+c.bg2+' 45%,#151517 100%) fixed';
+
+  e.textContent='body{background:'+bg+'}';
+
+  try{localStorage.setItem('ta_th',JSON.stringify(c))}catch(x){}
+}
 function thSet(k,v){S.th[k]=v;applyTheme()}function thP(i){S.th=Object.assign({},PRE[i].c);applyTheme();render()}
 Object.assign(D,{tobte:'Modifier la TOBT ↗|Edit TOBT ↗',tsim:'TSAT (saisie manuelle)|TSAT (manual entry)',eoscp:'ICAO {A} copié : saisissez-le dans la page BlackBox711, l’EOSID est dans l’image.|ICAO {A} copied: enter it on the BlackBox711 page, the EOSID is in the image.',colt:'Couleurs|Colors',cnv:'En-têtes de panneaux|Panel headers',cbl:'Accent|Accent',cbg1:'Fond (haut)|Background (top)',cbg2:'Fond (bas)|Background (bottom)',cp:'Cartes|Cards',cpre:'Préréglages|Presets',utcn:'Toutes les heures sont en UTC.|All times are in UTC.',vnote:'Lecture TOBT/TSAT/CTOT via vIFF sans identifiants. La modification de la TOBT passe par le VDGS (bouton « Modifier la TOBT »).|TOBT/TSAT/CTOT are read from vIFF without credentials. TOBT changes go through the VDGS (“Edit TOBT” button).',eosd:'URL de la page EOSID (optionnel, {ICAO} accepté)|EOSID page URL (optional, {ICAO} accepted)'});
 function vdgs(){window.open('https://vdgs.vatsimspain.es/','_blank','noopener')}
@@ -664,7 +685,7 @@ setInterval(async()=>{
     techlogPollBusy=false;
   }
 },10000);
-const SK=['lang','side','uname','sbu','eos','th','stands','nextNS','gsxHost','gsxPort','boardMode'];
+const SK=['lang','side','uname','sbu','eos','th','stands','nextNS','gsxHost','gsxPort','boardMode','bgImage'];
 function snap(){const set={};SK.forEach(k=>set[k]=S[k]);set.cid=S.viff.cid;delete set.viffApiKey;delete set.apiKey;const ac={};for(const k in S.db.ac)if(k!='—')ac[k]=S.db.ac[k];const flight={ofp:S.ofp||null,FL:{no:FL.no,reg:FL.reg,ty:FL.ty,d:FL.d,a:FL.a,call:FL.call,std:FL.std,sta:FL.sta},rls:S.rls,sg:S.sg,ls:S.ls,col:S.col,nv:S.nv,sub:S.sub,sel:S.sel,bd:S.bd,brd:S.brd,px:S.px,hc:S.hc,pk:S.pk,crew:S.crew,tsat:S.tsat,tobt:S.tobt,tobtV:S.tobtV,ctotV:S.ctotV,cdm:S.cdm,ng:S.ng,nq:S.nq,nraw:S.nraw,bt0:S.bt0,bdur:S.bdur};return JSON.stringify({set,db:{ac,rep:S.db.rep,duty:S.db.duty,hist:S.db.hist,notes:S.db.notes},flight})}
 let lastSnap='';setInterval(()=>{if(!S.user)return;const s=snap();if(s!==lastSnap){lastSnap=s;Store.save(S.user,JSON.parse(s)).catch(()=>{})}},2500);
 /* briefings PDF (IndexedDB, per account) */
@@ -674,6 +695,39 @@ const bPut=(k,b)=>bTx('readwrite',o=>o.put(b,k)),bGet=k=>bTx('readonly',o=>o.get
 async function bKeys(){try{const k=await bTx('readonly',o=>o.getAllKeys());return k.filter(x=>x.startsWith(S.user+':')).map(x=>x.split(':')[1]).sort()}catch(e){return[]}}
 async function bkAdd(){const a=$('#bki').value.trim().toUpperCase(),f=$('#bkf').files[0];if(!/^[A-Z]{4}$/.test(a)||!f||!/pdf/i.test(f.type+f.name)){S.msg=t('bbad');return render()}await bPut(S.user+':'+a,f);S.briefs=await bKeys();S.msg='';render()}
 async function bkDel(a){await bDel(S.user+':'+a);S.briefs=await bKeys();render()}
+async function bgImport(inp){
+  const f=inp.files&&inp.files[0];
+  if(!f)return;
+
+  if(!f.type.startsWith('image/')){
+    alert('Choisis un fichier image.');
+    return;
+  }
+
+  const rd=new FileReader();
+
+  rd.onload=()=>{
+    const im=new Image();
+
+    im.onload=()=>{
+      const scale=Math.min(1,1600/im.width,1200/im.height);
+      const c=document.createElement('canvas');
+
+      c.width=Math.round(im.width*scale);
+      c.height=Math.round(im.height*scale);
+
+      c.getContext('2d').drawImage(im,0,0,c.width,c.height);
+
+      S.bgImage=c.toDataURL('image/jpeg',0.75);
+      applyTheme();
+      render();
+    };
+
+    im.src=rd.result;
+  };
+
+  rd.readAsDataURL(f);
+}
 /* PDF reader (pdf.js) */
 const PV={doc:null,scale:1.2,pen:false,ann:{},key:''};let pdfjsP=null;
 function loadPdfjs(){if(pdfjsP)return pdfjsP;return pdfjsP=new Promise((res,rej)=>{const s=document.createElement('script');s.src='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';s.onload=()=>{pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';res(pdfjsLib)};s.onerror=()=>{pdfjsP=null;rej(new Error('lib'))};document.head.appendChild(s)})}
@@ -824,6 +878,12 @@ return `<div class=card><b>${t('acct')} · ${esc(S.user||'')}</b><p><button clas
 <div class=card><b>VATSIM / vIFF</b><div class=fgs style="margin-top:8px"><div><label>${t('vcid')}</label><input value="${esc(v.cid)}" onchange="S.viff.cid=this.value.trim()"></div><div><label>API vIFF</label><div class=mu>Connexion sécurisée par le serveur</div></div></div><p class=mu>${t('vnote')}</p><p><button class=btn onclick="viffPoll()">${t('sync')}</button> <button class=btn onclick="vdgs()">${t('tobte')}</button> ${S.viffSt=='ok'?ch('✓ vIFF','ok'):S.viffSt=='off'?ch('vIFF ✕','wn'):''}</p></div>
 <div class=card><b>${t('sBr')}</b><div class=fgs style="margin-top:8px"><div><label>${t('bico')}</label><input id=bki maxlength=4 style="text-transform:uppercase" placeholder="LFPG"></div><div><label>${t('bfile')}</label><input id=bkf type=file accept="application/pdf,.pdf"></div></div><p><button class="btn p" onclick="bkAdd()">${t('badd')}</button></p>${S.briefs.length?S.briefs.map(a=>`<span class=ch style="margin:0 8px 6px 0">${a} <button class="btn sm" style="min-height:24px;padding:0 8px;margin-left:6px" onclick="bkDel('${a}')">×</button></span>`).join(''):`<p class=mu>${t('bnone')}</p>`}<p class=mu>${t('bnote')}</p><div class=fgs style="margin-top:8px"><div><label>${t('eosd')}</label><input value="${esc(S.eos)}" placeholder="https://blackbox711.com/airport-info-charts.html" onchange="S.eos=this.value.trim()"></div></div></div>
 <div class=card><b>${t('colt')}</b><div class=fgs style="margin-top:8px">${col('nv','cnv')}${col('bl','cbl')}${col('bg1','cbg1')}${col('bg2','cbg2')}${col('p','cp')}</div><p class=mu style="margin-bottom:6px">${t('cpre')}</p><p>${PRE.slice(-2).map((x,i)=>`<button class="btn sm" onclick="thP(${PRE.length-2+i})">${L2(x.n)}</button> `).join('')}</p></div>
+<div class=card>
+  <b>Fond d’écran</b>
+  <p class=mu>Choisis une image pour personnaliser l’arrière-plan de Turnaround. Le fond sera synchronisé avec ton compte.</p>
+  <p><input type=file accept="image/*" onchange="bgImport(this)" style="width:100%"></p>
+  ${S.bgImage?'<p class=ch style="color:var(--gr)">✓ Image enregistrée</p><button class="btn" onclick="S.bgImage=\'\';applyTheme();render()">Retirer le fond</button>':''}
+</div>
 <div class=card><b>${t('standt')}</b><p><button class=btn onclick="S.sm2='stands';render()">${t('standt')}</button></p><p class=mu>${t('nav')}</p></div>`}
 /* auth */
 function renderAuth(){$('#top').style.display=$('#bar').style.display='none';const m=S.am;
@@ -864,7 +924,34 @@ async function startSession(id){
   render();
   welcome();
 }
-function logout(){Store.save(S.user,JSON.parse(snap())).catch(()=>{});S.user=null;S.techlogDefects=[];S.ofp=null;S.crew=null;S.db={ac:{},rep:[]};S.sg={ofp:null,ls:null};Object.assign(FL,{no:'—',reg:'—',ty:'',d:'----',a:'----',call:'—'});S.col={fpl:1,pax:1,mass:1,val:1};S.au='';S.ae='';S.am='lg';render()}
+function logout(){
+  Store.save(S.user,JSON.parse(snap())).catch(()=>{});
+
+  S.user=null;
+  applyTheme();
+
+  S.techlogDefects=[];
+  S.ofp=null;
+  S.crew=null;
+  S.db={ac:{},rep:[]};
+  S.sg={ofp:null,ls:null};
+
+  Object.assign(FL,{
+    no:'—',
+    reg:'—',
+    ty:'',
+    d:'----',
+    a:'----',
+    call:'—'
+  });
+
+  S.col={fpl:1,pax:1,mass:1,val:1};
+  S.au='';
+  S.ae='';
+  S.am='lg';
+
+  render();
+}
 function welcome(){const w=document.createElement('div');w.className='wel';w.innerHTML=`<img src="${LOGO}" alt=""><h1>${t('welc')}, ${esc(S.uname||S.user)}</h1><p>${t('bonv')}</p>`;document.body.appendChild(w);setTimeout(()=>w.classList.add('out'),1800);setTimeout(()=>w.remove(),2600)}
 function render(){document.documentElement.lang=S.lang;if(!S.user){renderAuth();return}$('#top').style.display=$('#bar').style.display='';const y=$('#main').scrollTop;hdr();bar();
 $('#main').innerHTML=(S.tab!='dash'&&S.msg?`<div class="ban bl" onclick="S.msg='';render()">${S.msg}</div>`:'')+V[S.tab]()+modal()+modal2();$('#main').scrollTop=y;if(S.sm)pad();
