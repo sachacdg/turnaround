@@ -1017,7 +1017,6 @@ ${R.length?`<div style="min-width:700px">
 <th>${t('cbrn')}</th>
 <th>Fuel mini</th>
 <th>${t('crem')}</th>
-<th>Δ</th>
 </tr>
 ${R.map(x=>{
   const A=!!x.a,c=A?' cy':' dim';
@@ -1030,8 +1029,7 @@ ${R.map(x=>{
     <td class="v${c}">${dur(x.d)}</td>
     <td class="v${c}">${Math.round(x.b)}</td>
     <td class="v">${x.fmin>0?Math.round(x.fmin):'—'}</td>
-    <td class="v${c}">${Math.round(x.fb)}${A?`<small>${x.pf}</small>`:''}</td>
-<td class="v${c} ${A?(x.fb<x.pf?'rd':x.fb>x.pf?'ok':''):'dim'}">${A?(x.fb-x.pf>0?'+':'')+Math.round(x.fb-x.pf):'—'}</td>
+    <td class="v${c}">${Math.round(x.fb)}${A?`<small>${x.pf}</small><small class="${x.fb<x.pf?'rd':x.fb>x.pf?'ok':''}">Δ ${x.fb-x.pf>0?'+':''}${Math.round(x.fb-x.pf)}</small>`:''}</td>
   </tr>`;
 }).join('')}
 </table>
