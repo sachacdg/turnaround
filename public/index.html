@@ -568,7 +568,7 @@ e1:'Identifiant ou mot de passe incorrect.|Wrong username or password.',e2:'Iden
 mloc:'Compte enregistré sur cet appareil (mode local).|Account stored on this device (local mode).',msrv:'Compte enregistré sur le serveur.|Account stored on the server.',lo:'Se déconnecter|Sign out',acct:'Compte|Account',
 bico:'Code ICAO|ICAO code',bfile:'Fichier PDF|PDF file',badd:'Ajouter le briefing|Add briefing',bbad:'Code ICAO (4 lettres) et fichier PDF requis.|ICAO code (4 letters) and a PDF file are required.',bnone:'Aucun briefing enregistré.|No briefing stored.',bnote:'Les PDF restent sur cet appareil.|PDFs stay on this device.',
 abr:'AIRPORT BRIEFINGS|AIRPORT BRIEFINGS',nodoc:'Aucun document|No document',pnen:'Stylet|Pen',pgl:'Page|Page',nores:'Aucun résultat|No results',lding:'Chargement…|Loading…',pdfe:'Impossible de charger le document.|Could not load the document.',
-mtr:'METAR / TAF|METAR / TAF',nomet:'Non disponible dans l’OFP|Not available in the OFP',light:'Clair (Pilot Mission)|Light (Pilot Mission)',dark:'Sombre (simREF)|Dark (simREF)',
+mtr:'METAR / TAF|METAR / TAF',nomet:'Non disponible dans l’OFP|Not available in the OFP',light:'Clair|Light ',dark:'Sombre|Dark',
 crw:'Équipage|Crew',wat:'Eau|Water',mdgt:'Mini DGT|Min DGT',sbs:'ULTI|ULTI',noac:'Synchronisez un OFP pour afficher l’avion et son historique.|Sync an OFP to show the aircraft and its history.',asrp:'ASR des pilotes|Pilot ASR reports',acd:'Compte|Account',hhmm:'HHMM|HHMM'});
 Object.assign(S,{
   user:null,
@@ -592,7 +592,30 @@ Object.defineProperty(S,'rep',{get(){return S.db.rep},configurable:true});
 /* presets and theme */
 PRE.forEach(p=>{p.c.mode=p.c.mode||'dark'});THD.mode='dark';
 PRE.push({n:'Clair (Pilot Mission)|Light (Pilot Mission)',c:{mode:'light',nv:'#25407a',bl:'#25407a',bg1:'#eceef2',bg2:'#cdd3dd',p:'#f6f7f9'}},{n:'Sombre (simREF)|Dark (simREF)',c:{mode:'dark',nv:'#3b3b40',bl:'#00d818',bg1:'#3a3a3d',bg2:'#0b0b0c',p:'#1b1b1e'}});
-function applyTheme(){const c=Object.assign({},THD,S.th),r=document.documentElement;r.dataset.th=c.mode||'dark';const s=r.style;s.setProperty('--nv',c.nv);s.setProperty('--bl',c.bl);s.setProperty('--cy',c.bl);s.setProperty('--p',c.p);let e=document.getElementById('thst');if(!e){e=document.createElement('style');e.id='thst';document.head.appendChild(e)}e.textContent='body{background:linear-gradient(180deg,'+c.bg1+' 0%,'+c.bg2+' 45%,'+(c.mode=='light'?c.bg2:'#151517')+' 100%) fixed}'}
+function applyTheme(){
+  const c=Object.assign({},THD,S.th);
+  const r=document.documentElement;
+  r.dataset.th=c.mode||'dark';
+
+  const s=r.style;
+  s.setProperty('--nv',c.nv);
+  s.setProperty('--bl',c.bl);
+  s.setProperty('--cy',c.bl);
+  s.setProperty('--p',c.p);
+
+  let e=document.getElementById('thst');
+  if(!e){
+    e=document.createElement('style');
+    e.id='thst';
+    document.head.appendChild(e);
+  }
+
+  const bg=S.user&&S.bgImage
+    ? 'linear-gradient(rgba(20,20,25,.30),rgba(20,20,25,.45)),url("'+S.bgImage+'") center/cover fixed'
+    : 'linear-gradient(180deg,'+c.bg1+' 0%,'+c.bg2+' 45%,'+(c.mode=='light'?c.bg2:'#151517')+' 100%) fixed';
+
+  e.textContent='body{background:'+bg+'}';
+}
 document.head.appendChild(Object.assign(document.createElement('style'),{textContent:`
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes fade{from{opacity:0}to{opacity:1}}@keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
 .anim>*{animation:fadeUp .4s both}.anim>*:nth-child(2){animation-delay:.05s}.anim>*:nth-child(3){animation-delay:.1s}.anim>*:nth-child(4){animation-delay:.15s}.anim>*:nth-child(n+5){animation-delay:.2s}
@@ -1279,7 +1302,30 @@ return sec('acc',t('accS'),`<p class=mu>${esc(S.user||'')} · ${Store.mode=='ser
     Ouvrir l’interface GSX
   </button>
 </p><hr style="border:0;border-top:1px solid var(--ln);margin:14px 0"><b>VATSIM / vIFF</b><div class=fgs style="margin:8px 0"><div><label>${t('vcid')}</label><input value="${esc(v.cid)}" onchange="S.viff.cid=this.value.trim()"></div></div><p class=mu>${t('vnote')}</p><p><button class=btn onclick="viffPoll()">${t('sync')}</button> <button class=btn onclick="vdgs()">${t('vdgsl')}</button> ${S.viffSt=='ok'?ch('✓ vIFF','ok'):S.viffSt=='off'?ch('vIFF ✕','wn'):''}</p><hr style="border:0;border-top:1px solid var(--ln);margin:14px 0"><b>${t('diag')}</b>${dg}`)
-+sec('app',t('appS'),`<div class=fgs>${col('nv','cnv')}${col('bl','cbl')}${col('bg1','cbg1')}${col('bg2','cbg2')}${col('p','cp')}</div><p class=mu style="margin:12px 0 6px">${t('cpre')}</p><p>${PRE.slice(-2).map((x,i)=>`<button class="btn sm" style="margin:0 6px 6px 0" onclick="thP(${PRE.length-2+i})">${L2(x.n)}</button>`).join('')}</p>`)
++sec('app',t('appS'),`
+  <div class=fgs>
+    ${col('nv','cnv')}
+    ${col('bl','cbl')}
+    ${col('bg1','cbg1')}
+    ${col('bg2','cbg2')}
+    ${col('p','cp')}
+  </div>
+
+  <p class=mu style="margin:12px 0 6px">${t('cpre')}</p>
+  <p>${PRE.slice(-2).map((x,i)=>`<button class="btn sm" style="margin:0 6px 6px 0" onclick="thP(${PRE.length-2+i})">${L2(x.n)}</button>`).join('')}</p>
+
+  <hr style="border:0;border-top:1px solid var(--ln);margin:16px 0">
+
+  <b>Fond d’écran</b>
+  <p class=mu>Personnaliser l’arrière-plan de Turnaround. Image synchronisée avec votre compte.</p>
+
+  <input type=file accept="image/*" onchange="bgImport(this)" style="width:100%">
+
+  ${S.bgImage?`
+    <p class=ch style="color:var(--gr)">✓ Fond d’écran enregistré</p>
+    <button class="btn" onclick="S.bgImage='';applyTheme();render()">Retirer le fond</button>
+  `:''}
+`)
 +sec('doc',t('docS'),`<div class=fgs><div><label>${t('bico')}</label><input id=bki maxlength=4 style="text-transform:uppercase" placeholder="LFPG"></div><div><label>${t('bfile')}</label><input id=bkf type=file accept="application/pdf,.pdf"></div></div><p><button class="btn p" onclick="bkAdd()">${t('badd')}</button></p>${S.briefs.length?S.briefs.map(a=>`<span class=ch style="margin:0 8px 6px 0">${a} <button class="btn sm" style="min-height:24px;padding:0 8px;margin-left:6px" onclick="bkDel('${a}')">×</button></span>`).join(''):`<p class=mu>${t('bnone')}</p>`}<div class=fgs style="margin-top:8px"><div><label>${t('eosd')}</label><input value="${esc(S.eos)}" placeholder="https://blackbox711.com/airport-info-charts.html" onchange="S.eos=this.value.trim()"></div></div>`)
 +sec('gat',t('gatS'),`<p><button class=btn onclick="S.sm2='stands';render()">${t('standt')}</button></p>`)}
 document.head.appendChild(Object.assign(document.createElement('style'),{textContent:`.acc{width:100%;display:flex;justify-content:space-between;align-items:center;background:none;border:0;color:var(--tx);padding:16px;font-size:16px;font-weight:700;text-align:left}.acc svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2;transition:transform .2s;flex-shrink:0}.acc.on svg{transform:rotate(90deg)}.accb{padding:0 16px 16px;animation:fade .2s}.stp{color:var(--am)!important;font-weight:700}`}));
