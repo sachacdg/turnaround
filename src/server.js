@@ -148,7 +148,109 @@ app.post('/api/techlog/:id/close',auth,asyncRoute(async(req,res)=>{
 
  return res.json({defect:result.rows[0]});
 }));
+// ===== Shared Aircraft Flight History =====
 
+app.post('/api/aircraft-history', auth, asyncRoute(async(req,res)=>{
+ const reg=cleanRegistration(req.body?.registration);
+ const flightNumber=String(req.body?.flightNumber||'').trim().toUpperCase();
+ const origin=String(req.body?.origin||'').trim().toUpperCase();
+ const destination=String(req.body?.destination||'').trim().toUpperCase();
+ const offBlocksMs=Number(req.body?.offBlocksMs);
+ const onBlocksMs=Number(req.body?.onBlocksMs);
+ const pax=Number(req.body?.pax ?? 0);
+
+ if(!/^[A-Z0-9-]{2,12}$/.test(reg))
+  return res.status(400).json({error:'invalid_registration'});
+
+ if(!flightNumber||flightNumber.length>20)
+  return res.status(400).json({error:'invalid_flight_number'});
+
+ if(!/^[A-Z]{4}$/.test(origin)||!/^[A-Z]{4}$/.test(destination))
+  return res.status(400).json({error:'invalid_airports'});
+
+ if(!Number.isSafeInteger(offBlocksMs)||offBlocksMs<=0||
+    !Number.isSafeInteger(onBlocksMs)||onBlocksMs<offBlocksMs)
+  return res.status(400).json({error:'invalid_block_times'});
+
+ if(!Number.isInteger(pax)||pax<0||pax>999)
+  return res.status(400).json({error:'invalid_pax'});
+
+ const client=await pool.connect();
+
+ try{
+  await client.query('BEGIN');
+
+  // Serialize updates for this registration.
+  await client.query(
+   'SELECT pg_advisory_xact_lock(hashtext($1))',
+   [reg]
+  );
+
+  const old=await client.query(`
+   SELECT
+    registration,
+    flight_number AS "flightNumber",
+    origin,
+    destination,
+    off_blocks_ms AS "offBlocksMs",
+    on_blocks_ms AS "onBlocksMs",
+    pax
+   FROM aircraft_flight_history
+   WHERE registration=$1
+   FOR UPDATE
+  `,[reg]);
+
+  const existing=old.rows[0]||null;
+  const previous=existing&&
+   Number(existing.offBlocksMs)<offBlocksMs
+   ?existing:null;
+
+  const saved=await client.query(`
+   INSERT INTO aircraft_flight_history (
+    registration,
+    flight_number,
+    origin,
+    destination,
+    off_blocks_ms,
+    on_blocks_ms,
+    pax,
+    updated_by
+   )
+   VALUES ($1,$2,$3,$4,$5,$6,$7,$8)
+   ON CONFLICT (registration) DO UPDATE SET
+    flight_number=EXCLUDED.flight_number,
+    origin=EXCLUDED.origin,
+    destination=EXCLUDED.destination,
+    off_blocks_ms=EXCLUDED.off_blocks_ms,
+    on_blocks_ms=EXCLUDED.on_blocks_ms,
+    pax=EXCLUDED.pax,
+    updated_by=EXCLUDED.updated_by,
+    updated_at=NOW()
+   WHERE aircraft_flight_history.off_blocks_ms
+         <= EXCLUDED.off_blocks_ms
+   RETURNING registration
+  `,[
+   reg,flightNumber,origin,destination,
+   offBlocksMs,onBlocksMs,pax,req.user.username
+  ]);
+
+  await client.query('COMMIT');
+
+  return res.json({
+   ok:true,
+   stored:saved.rowCount>0,
+   previous
+  });
+
+ }catch(err){
+  await client.query('ROLLBACK');
+  throw err;
+ }finally{
+  client.release();
+ }
+}));
+
+// ===== End Shared Aircraft Flight History =====
 // ===== End Shared Techlog =====
 function viffHeaders(){const key=process.env.VIFF_API_KEY;if(!key)throw Object.assign(new Error('vIFF server key is not configured'),{status:503,code:'viff_not_configured'});const h={Accept:'application/json'};const hn=process.env.VIFF_API_KEY_HEADER||'X-API-Key';if(!/^[A-Za-z0-9-]{1,64}$/.test(hn))throw Object.assign(new Error('Invalid VIFF_API_KEY_HEADER'),{status:500});h[hn]=key;if(process.env.VIFF_AUTH_SCHEME)h.Authorization=`${process.env.VIFF_AUTH_SCHEME} ${key}`;return h;}
 async function upstream(url,options={}){const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);try{const r=await fetch(url,{...options,signal:controller.signal,redirect:'error'});const body=await r.text();if(!r.ok)throw Object.assign(new Error(`vIFF returned HTTP ${r.status}`),{status:502,code:'viff_upstream_error',upstreamStatus:r.status});try{return body?JSON.parse(body):{};}catch(_){throw Object.assign(new Error('vIFF response was not JSON'),{status:502,code:'viff_invalid_response'});}}catch(e){if(e.name==='AbortError')throw Object.assign(new Error('vIFF request timed out'),{status:504,code:'viff_timeout'});throw e;}finally{clearTimeout(timer);}}
