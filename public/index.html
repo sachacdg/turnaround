@@ -909,8 +909,122 @@ return `<div class=card><b>${t('acct')} · ${esc(S.user||'')}</b><p><button clas
 </div>
 <div class=card><b>${t('standt')}</b><p><button class=btn onclick="S.sm2='stands';render()">${t('standt')}</button></p><p class=mu>${t('nav')}</p></div>`}
 /* auth */
-function renderAuth(){$('#top').style.display=$('#bar').style.display='none';const m=S.am;
-$('#main').innerHTML=`<div style="max-width:420px;margin:5vh auto;text-align:center"><img src="${LOGO}" alt="" style="width:84px;height:84px;border-radius:20px;animation:pop .6s"><h1 style="margin:14px 0 4px;animation:fadeUp .6s .1s both">Turnaround</h1><div class=mu style="margin-bottom:16px;animation:fadeUp .6s .2s both">${t('welc')}</div><div class=card style="text-align:left;animation:fadeUp .6s .25s both"><div class=seg style="display:flex"><button style="flex:1" class="${m=='lg'?'on':''}" onclick="S.am='lg';S.ae='';render()">${t('lg')}</button><button style="flex:1" class="${m=='cr'?'on':''}" onclick="S.am='cr';S.ae='';render()">${t('cr')}</button></div><p><label class=lb2>${t('idl')}</label><input id=au autocomplete=username style="width:100%" value="${esc(S.au)}"></p><p><label class=lb2>${t('pwl')}</label><input id=ap2 type=password autocomplete="${m=='lg'?'current-password':'new-password'}" style="width:100%" onkeydown="if(event.key=='Enter')authGo()"></p>${S.ae?`<div class="ban rd">${t(S.ae)}</div>`:''}<button class="btn p" style="width:100%" onclick="authGo()" ${S.authLoading?'disabled':''}>${m=='lg'?t('go1'):t('go2')}</button>${S.authLoading?`<div class="auth-loading" role="status" aria-live="polite"><div class="auth-loading-text">${S.lang=='fr'?'Connexion et chargement en cours…':'Signing in and loading…'}</div><div class="auth-loading-track"><span></span></div></div>`:''}<p class=mu style="font-size:12px;margin-bottom:0">${Store.mode=='server'?t('msrv'):t('mloc')}</p></div><span class=seg style="margin-top:12px"><button class="${S.lang=='fr'?'on':''}" onclick="S.lang='fr';render()">FR</button><button class="${S.lang=='en'?'on':''}" onclick="S.lang='en';render()">EN</button></span></div>`}
+function authLightStyle(){
+  if(document.getElementById('auth-light-style'))return;
+
+  const st=document.createElement('style');
+  st.id='auth-light-style';
+  st.textContent=`
+    body.auth-light{
+      background:#ffffff!important;
+      color:#202735!important;
+    }
+
+    body.auth-light #main{
+      background:#ffffff!important;
+      color:#202735!important;
+    }
+
+    body.auth-light #auth-page{
+      color:#202735;
+    }
+
+    body.auth-light #auth-page .card{
+      background:#ffffff!important;
+      color:#202735!important;
+      border:1px solid #e5e8ee!important;
+      box-shadow:0 8px 30px rgba(20,35,60,.08);
+    }
+
+    body.auth-light #auth-page .mu,
+    body.auth-light #auth-page label{
+      color:#687386!important;
+    }
+
+    body.auth-light #auth-page input{
+      background:#f8fafc!important;
+      color:#202735!important;
+      border:1px solid #dce2ea!important;
+    }
+
+    body.auth-light #auth-page .seg{
+      background:#eef1f5!important;
+    }
+
+    body.auth-light #auth-page .seg button{
+      color:#526075!important;
+    }
+
+    body.auth-light #auth-page .seg button.on{
+      background:#ffffff!important;
+      color:#183b70!important;
+      box-shadow:0 1px 4px rgba(0,0,0,.10);
+    }
+
+    body.auth-light #auth-page .btn.p{
+      background:#244b80!important;
+      color:#ffffff!important;
+    }
+  `;
+  document.head.appendChild(st);
+}
+function renderAuth(){
+  document.body.classList.add('auth-light');
+  authLightStyle();
+
+  $('#top').style.display=$('#bar').style.display='none';
+  const m=S.am;
+
+  $('#main').innerHTML=`
+    <div id="auth-page" style="max-width:420px;margin:5vh auto;text-align:center;padding:0 16px">
+      <img src="${LOGO}" alt="" style="width:84px;height:84px;border-radius:20px;animation:pop .6s">
+
+      <h1 style="margin:14px 0 4px;color:#202735">Turnaround</h1>
+
+      <div class=mu style="margin-bottom:16px">
+        ${t('welc')}
+      </div>
+
+      <div class=card style="text-align:left">
+        <div class=seg style="display:flex">
+          <button style="flex:1" class="${m=='lg'?'on':''}" onclick="S.am='lg';S.ae='';render()">${t('lg')}</button>
+          <button style="flex:1" class="${m=='cr'?'on':''}" onclick="S.am='cr';S.ae='';render()">${t('cr')}</button>
+        </div>
+
+        <p>
+          <label class=lb2>${t('idl')}</label>
+          <input id=au autocomplete=username style="width:100%" value="${esc(S.au)}">
+        </p>
+
+        <p>
+          <label class=lb2>${t('pwl')}</label>
+          <input id=ap2 type=password autocomplete="${m=='lg'?'current-password':'new-password'}" style="width:100%" onkeydown="if(event.key=='Enter')authGo()">
+        </p>
+
+        ${S.ae?`<div class="ban rd">${t(S.ae)}</div>`:''}
+
+        <button class="btn p" style="width:100%" onclick="authGo()" ${S.authLoading?'disabled':''}>
+          ${m=='lg'?t('go1'):t('go2')}
+        </button>
+
+        ${S.authLoading?`
+          <div class="auth-loading" role="status" aria-live="polite">
+            <div class="auth-loading-text">${S.lang=='fr'?'Connexion et chargement en cours…':'Signing in and loading…'}</div>
+            <div class="auth-loading-track"><span></span></div>
+          </div>
+        `:''}
+
+        <p class=mu style="font-size:12px;margin-bottom:0">
+          ${Store.mode=='server'?t('msrv'):t('mloc')}
+        </p>
+      </div>
+
+      <span class=seg style="margin-top:12px">
+        <button class="${S.lang=='fr'?'on':''}" onclick="S.lang='fr';render()">FR</button>
+        <button class="${S.lang=='en'?'on':''}" onclick="S.lang='en';render()">EN</button>
+      </span>
+    </div>`;
+}
 async function authGo(){if(S.authLoading)return;const id=$('#au').value.trim().toLowerCase(),pw=$('#ap2').value;S.au=id;if(id.length<3||pw.length<6){S.ae='e3';return render()}
 S.ae='';S.authLoading=true;render();
 try{if(S.am=='cr')await Store.register(id,pw);await Store.login(id,pw);await startSession(id)}catch(e){S.authLoading=false;S.ae=e.message=='exists'?'e2':e.message=='bad'?'e1':'e4';render()}}
