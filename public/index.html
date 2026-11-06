@@ -1036,6 +1036,19 @@ body.auth-light #main{
 }
 function renderAuth(){
   applyTheme();
+    let hasSavedBg=!!S.bgImage;
+  if(!hasSavedBg){
+    try{
+      hasSavedBg=!!localStorage.getItem('ta_bg_preview');
+    }catch(e){}
+  }
+
+  if(!hasSavedBg){
+    const thst=document.getElementById('thst');
+    if(thst){
+      thst.textContent='html{background:linear-gradient(180deg,#eceef2 0%,#cdd3dd 100%) fixed}body{background:transparent!important}';
+    }
+  }
   document.body.classList.add('auth-light');
   authLightStyle();
 
