@@ -1612,6 +1612,18 @@ return sec('acc',t('accS'),`<p class=mu>${esc(S.user||'')} · ${Store.mode=='ser
 
   <p class=mu style="margin:12px 0 6px">${t('cpre')}</p>
   <p>${PRE.slice(-2).map((x,i)=>`<button class="btn sm" style="margin:0 6px 6px 0" onclick="thP(${PRE.length-2+i})">${L2(x.n)}</button>`).join('')}</p>
+    <hr style="border:0;border-top:1px solid var(--ln);margin:16px 0">
+
+  <b>Style des boutons de navigation</b>
+  <p class=mu>Choisis entre une barre classique et des boutons indépendants.</p>
+  <p>
+    <span class=seg>
+      <button class="${S.navStyle!=='floating'?'on':''}"
+        onclick="S.navStyle='bar';render()">Avec barre</button>
+      <button class="${S.navStyle==='floating'?'on':''}"
+        onclick="S.navStyle='floating';render()">Flottants</button>
+    </span>
+  </p>
 
   <hr style="border:0;border-top:1px solid var(--ln);margin:16px 0">
 
