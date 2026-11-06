@@ -1282,7 +1282,8 @@ function render(){
     return;
   }
 
-  document.body.classList.remove('auth-light');
+    document.body.classList.remove('auth-light');
+  applyTheme();
 
   $('#top').style.display=$('#bar').style.display='';const y=$('#main').scrollTop;hdr();bar();let h;try{h=V[S.tab]()}catch(e){console.error(e);h=`<div class=card><b>Error</b><div class=mono>${esc(e.message)}</div></div>`}
 $('#main').innerHTML=(S.tab!='dash'&&S.msg?`<div class="ban bl" onclick="S.msg='';render()">${S.msg}</div>`:'')+h+modal()+modal2();$('#main').scrollTop=y;if(S.sm)pad();if(S.tab=='dos')fillThumbs();if(S.tab=='log'&&S.lt=='notes')npadInit();
