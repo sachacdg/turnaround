@@ -804,6 +804,9 @@ async function bgImport(inp){
       c.getContext('2d').drawImage(im,0,0,c.width,c.height);
 
       S.bgImage=c.toDataURL('image/jpeg',0.95);
+      try{
+  localStorage.setItem('ta_bg_preview',S.bgImage);
+}catch(e){}
       applyTheme();
       render();
     };
