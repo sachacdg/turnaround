@@ -978,14 +978,15 @@ function authLightStyle(){
   st.id='auth-light-style';
   st.textContent=`
     body.auth-light{
-      background:#ffffff!important;
-      color:#202735!important;
-    }
+  background:transparent!important;
+  color:#111!important;
+}
 
-    body.auth-light #main{
-      background:#ffffff!important;
-      color:#202735!important;
-    }
+body.auth-light #main{
+  background:transparent!important;
+  color:#111!important;
+  min-height:100vh;
+}
 
     body.auth-light #auth-page{
       color:#202735;
