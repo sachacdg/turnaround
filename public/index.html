@@ -1413,6 +1413,18 @@ return `<div class=card><b>${t('acct')} · ${esc(S.user||'')}</b><p><button clas
 <div class=card><b>VATSIM / vIFF</b><div class=fgs style="margin-top:8px"><div><label>${t('vcid')}</label><input value="${esc(v.cid)}" onchange="S.viff.cid=this.value.trim()"></div><div><label>API vIFF</label><div class=mu>Connexion sécurisée par le serveur</div></div></div><p class=mu>${t('vnote')}</p><p><button class=btn onclick="viffPoll()">${t('sync')}</button> <button class=btn onclick="vdgs()">${t('vdgsl')}</button> ${S.viffSt=='ok'?ch('✓ vIFF','ok'):S.viffSt=='off'?ch('vIFF ✕','wn'):''}</p></div>
 <div class=card><b>${t('sBr')}</b><div class=fgs style="margin-top:8px"><div><label>${t('bico')}</label><input id=bki maxlength=4 style="text-transform:uppercase" placeholder="LFPG"></div><div><label>${t('bfile')}</label><input id=bkf type=file accept="application/pdf,.pdf"></div></div><p><button class="btn p" onclick="bkAdd()">${t('badd')}</button></p>${S.briefs.length?S.briefs.map(a=>`<span class=ch style="margin:0 8px 6px 0">${a} <button class="btn sm" style="min-height:24px;padding:0 8px;margin-left:6px" onclick="bkDel('${a}')">×</button></span>`).join(''):`<p class=mu>${t('bnone')}</p>`}<div class=fgs style="margin-top:8px"><div><label>${t('eosd')}</label><input value="${esc(S.eos)}" placeholder="https://blackbox711.com/airport-info-charts.html" onchange="S.eos=this.value.trim()"></div></div></div>
 <div class=card><b>${t('colt')}</b><div class=fgs style="margin-top:8px">${col('nv','cnv')}${col('bl','cbl')}${col('bg1','cbg1')}${col('bg2','cbg2')}${col('p','cp')}</div><p class=mu style="margin-bottom:6px">${t('cpre')}</p><p>${PRE.slice(-2).map((x,i)=>`<button class="btn sm" onclick="thP(${PRE.length-2+i})">${L2(x.n)}</button> `).join('')}</p></div>
+<div class=card>
+  <b>Style de navigation</b>
+  <p class=mu>Choisis l’apparence des onglets en bas de l’écran.</p>
+  <p>
+    <span class=seg>
+      <button class="${S.navStyle!=='floating'?'on':''}"
+        onclick="S.navStyle='bar';render()">Avec barre</button>
+      <button class="${S.navStyle==='floating'?'on':''}"
+        onclick="S.navStyle='floating';render()">Flottant</button>
+    </span>
+  </p>
+</div>
 <div class=card><b>${t('standt')}</b><p><button class=btn onclick="S.sm2='stands';render()">${t('standt')}</button></p></div>`}
 function render(){
   document.documentElement.lang=S.lang;
