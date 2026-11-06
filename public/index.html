@@ -1536,7 +1536,7 @@ return sec('acc',t('accS'),`<p class=mu>${esc(S.user||'')} · ${Store.mode=='ser
 
   ${S.bgImage?`
     <p class=ch style="color:var(--gr)">✓ Fond d’écran enregistré</p>
-    <button class="btn" onclick="S.bgImage='';applyTheme();render()">Retirer le fond</button>
+    <button class="btn" onclick="S.bgImage='';try{localStorage.removeItem('ta_bg_preview')}catch(e){}applyTheme();render()">Retirer le fond</button>
   `:''}
 `)
 +sec('doc',t('docS'),`<div class=fgs><div><label>${t('bico')}</label><input id=bki maxlength=4 style="text-transform:uppercase" placeholder="LFPG"></div><div><label>${t('bfile')}</label><input id=bkf type=file accept="application/pdf,.pdf"></div></div><p><button class="btn p" onclick="bkAdd()">${t('badd')}</button></p>${S.briefs.length?S.briefs.map(a=>`<span class=ch style="margin:0 8px 6px 0">${a} <button class="btn sm" style="min-height:24px;padding:0 8px;margin-left:6px" onclick="bkDel('${a}')">×</button></span>`).join(''):`<p class=mu>${t('bnone')}</p>`}<div class=fgs style="margin-top:8px"><div><label>${t('eosd')}</label><input value="${esc(S.eos)}" placeholder="https://blackbox711.com/airport-info-charts.html" onchange="S.eos=this.value.trim()"></div></div>`)
