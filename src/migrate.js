@@ -3,9 +3,10 @@ const path = require('node:path');
 const { pool } = require('./db');
 
 async function main() {
-  const migrations = [
+    const migrations = [
     '001_initial.sql',
-    '002_techlog.sql'
+    '002_techlog.sql',
+    '003_aircraft_history.sql'
   ];
 
   for (const name of migrations) {
