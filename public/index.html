@@ -669,7 +669,7 @@ if(!savedBg){
 
 const bg=savedBg
   ? 'url("'+savedBg+'") center/cover fixed'
-  : 'linear-gradient(180deg,'+c.bg1+' 0%,'+c.bg2+' 45%,#151517 100%) fixed';
+  : 'linear-gradient(180deg,'+c.bg1+' 0%,'+c.bg2+' 45%,'+(c.mode=='light'?c.bg2:'#151517')+' 100%) fixed';
 
 e.textContent='html{background:'+bg+'}body{background:transparent!important}';
 }
