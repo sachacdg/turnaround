@@ -667,6 +667,11 @@ async techlogClose(id){
  if(this.mode!=='server')throw new Error('techlog_server_required');
  return await this.srv('/api/techlog/'+encodeURIComponent(id)+'/close','POST',{});
 }
+async aircraftHistoryUpsert(payload){
+ if(this.mode!=='server')return null;
+ return await this.srv('/api/aircraft-history','POST',payload);
+}
+            
 };
 async function loadTechlog(reg=FL.reg){
   if(!reg||reg==='—'){
