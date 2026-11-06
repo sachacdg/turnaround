@@ -611,7 +611,7 @@ function applyTheme(){
   }
 
   const bg=S.user&&S.bgImage
-    ? 'linear-gradient(rgba(20,20,25,.30),rgba(20,20,25,.45)),url("'+S.bgImage+'") center/cover fixed'
+    ? 'url("'+S.bgImage+'") center/cover fixed'
     : 'linear-gradient(180deg,'+c.bg1+' 0%,'+c.bg2+' 45%,'+(c.mode=='light'?c.bg2:'#151517')+' 100%) fixed';
 
   e.textContent='body{background:'+bg+'}';
