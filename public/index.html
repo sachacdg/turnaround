@@ -1374,7 +1374,29 @@ function reStand(){const o=S.ofp;if(!o)return;const co=o.call.slice(0,3),a=pickS
 /* historique des vols : inbound / rotation */
 function histUp(o){const H=S.db.hist||(S.db.hist=[]),k=o.no+o.date,e={k,no:o.no,reg:o.reg,d:o.d,a:o.a,stdMs:o.stdMs,staMs:o.staMs,pax:o.w.pax},i=H.findIndex(x=>x.k==k);if(i>=0)H[i]=e;else H.push(e);H.sort((a,b)=>a.stdMs-b.stdMs);while(H.length>40)H.shift()}
 function prevFlight(){const o=S.ofp;if(!o||!Array.isArray(S.db.hist))return null;const norm=v=>String(v||'').trim().toUpperCase();const reg=norm(o.reg),dest=norm(o.d);let candidates=S.db.hist.filter(x=>x&&x.k!==o.no+o.date&&norm(x.reg)===reg&&norm(x.a)===dest&&Number.isFinite(+x.staMs)&&+x.staMs<=+o.stdMs&&(+o.stdMs-(+x.staMs))<36*3600000);candidates.sort((a,b)=>(+b.staMs)-(+a.staMs));return candidates[0]||null}
-function inbKv(){const p=prevFlight(),k=(a,b)=>`<div><span>${a}</span><b>${b}</b></div>`;if(!p)return k(t('esc'),'—')+k(t('num'),'—')+k(t('est'),'—')+k(t('ttm'),'—')+k(t('paxh'),'—');return k(t('esc'),p.d)+k(t('num'),p.no)+k(t('est'),hz(hmM(p.staMs))+'Z')+k(t('ttm'),Math.round((S.ofp.stdMs-p.staMs)/60000)+' min')+k(t('paxh'),p.pax)}
+function inbKv(){
+ const p=S.prevAircraftFlight;
+ const k=(a,b)=>`<div><span>${a}</span><b>${b}</b></div>`;
+
+ if(!p){
+  return k(t('esc'),'—')+
+         k(t('num'),'—')+
+         k(t('est'),'—')+
+         k(t('ttm'),'—')+
+         k(t('paxh'),'—');
+ }
+
+ const ttm=S.ofp.offBlocksMs-p.onBlocksMs;
+ const ttmTxt=ttm<0||ttm>300*60000
+  ?'—'
+  :Math.round(ttm/60000)+' min';
+
+ return k(t('esc'),p.origin)+
+        k(t('num'),p.flightNumber)+
+        k(t('est'),hz(hmM(p.onBlocksMs))+'Z')+
+        k(t('ttm'),ttmTxt)+
+        k(t('paxh'),p.pax);
+}
 function rotHtml(){const o=S.ofp,p=prevFlight(),row=(l,x)=>`<tr><td>${l}</td><td>${x}</td></tr>`,f=(n,a,b,c,d,r)=>`${n} · ${a}→${b} · ${hz(hmM(c))}Z → ${hz(hmM(d))}Z · ${r}`;
 return `<table>${row(t('prevl'),p?f(p.no,p.d,p.a,p.stdMs,p.staMs,p.reg)+' · '+p.pax+' pax':'—')}${row(t('rotl'),f(o.no,o.d,o.a,o.stdMs,o.staMs,o.reg))}</table><p style="margin-bottom:0"><label class=lb2>${t('nextd')}</label><input value="${esc(S.nextDest)}" maxlength=4 style="width:110px;text-transform:uppercase" placeholder="ICAO" onchange="setNext(this.value)"> <span class=mu>${S.nextNS?t('nonsch'):t('sch')}</span> <button class="btn sm" onclick="reStand()">${t('restand')}</button></p>`}
 function setNext(v){S.nextDest=v.trim().toUpperCase();if(S.nextDest.length==4)S.nextNS=isNS(S.nextDest);render()}
