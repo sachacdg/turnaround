@@ -1154,8 +1154,30 @@ function logout(){
   S.am='lg';
 
   render();
+}function welcome(){
+  const w=document.createElement('div');
+  w.className='wel';
+
+  if(S.bgImage){
+    w.style.background=
+      'linear-gradient(rgba(255,255,255,.35),rgba(255,255,255,.35)),url("'+S.bgImage+'") center/cover fixed';
+    w.style.color='#111';
+  }
+
+  w.innerHTML=`
+    <img src="${LOGO}" alt="">
+    <h1>${t('welc')}, ${esc(S.uname||S.user)}</h1>
+    <p>${t('bonv')}</p>
+  `;
+
+  if(S.bgImage){
+    w.querySelector('p').style.color='#222';
+  }
+
+  document.body.appendChild(w);
+  setTimeout(()=>w.classList.add('out'),1800);
+  setTimeout(()=>w.remove(),2600);
 }
-function welcome(){const w=document.createElement('div');w.className='wel';w.innerHTML=`<img src="${LOGO}" alt=""><h1>${t('welc')}, ${esc(S.uname||S.user)}</h1><p>${t('bonv')}</p>`;document.body.appendChild(w);setTimeout(()=>w.classList.add('out'),1800);setTimeout(()=>w.remove(),2600)}
 function render(){document.documentElement.lang=S.lang;if(!S.user){renderAuth();return}$('#top').style.display=$('#bar').style.display='';const y=$('#main').scrollTop;hdr();bar();
 $('#main').innerHTML=(S.tab!='dash'&&S.msg?`<div class="ban bl" onclick="S.msg='';render()">${S.msg}</div>`:'')+V[S.tab]()+modal()+modal2();$('#main').scrollTop=y;if(S.sm)pad();
 const d=$('#f_date'),m=$('#f_time');if(d&&!d.value)d.value=new Date().toISOString().slice(0,10);if(m&&!m.value)m.value=new Date().toISOString().slice(11,16).replace(':','')}
