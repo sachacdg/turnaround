@@ -1865,7 +1865,7 @@ function updateServiceStates(list, initial = false) {
   }
 
   if (d.type === 'snapshot') {
-  mirror = d.state || {};
+  mirror = d;
   updateServiceStates(mirror.services, true);
   log('État GSX reçu.');
   if (S.sm2 === 'gsx') render();
