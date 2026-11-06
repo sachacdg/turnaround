@@ -659,11 +659,19 @@ function applyTheme(){
     document.head.appendChild(e);
   }
 
-  const bg=S.user&&S.bgImage
-    ? 'url("'+S.bgImage+'") center/cover fixed'
-    : 'linear-gradient(180deg,'+c.bg1+' 0%,'+c.bg2+' 45%,'+(c.mode=='light'?c.bg2:'#151517')+' 100%) fixed';
+  let savedBg=S.bgImage||'';
 
-  e.textContent='body{background:'+bg+'}';
+if(!savedBg){
+  try{
+    savedBg=localStorage.getItem('ta_bg_preview')||'';
+  }catch(e){}
+}
+
+const bg=savedBg
+  ? 'url("'+savedBg+'") center/cover fixed'
+  : 'linear-gradient(180deg,'+c.bg1+' 0%,'+c.bg2+' 45%,#151517 100%) fixed';
+
+e.textContent='body{background:'+bg+'}';
 }
 document.head.appendChild(Object.assign(document.createElement('style'),{textContent:`
 @keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}@keyframes fade{from{opacity:0}to{opacity:1}}@keyframes pop{from{opacity:0;transform:scale(.7)}to{opacity:1;transform:none}}
