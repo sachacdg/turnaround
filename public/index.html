@@ -13,7 +13,14 @@ body{background:linear-gradient(180deg,#4a4a4f 0%,#2b2b2f 45%,#151517 100%) fixe
 .fc{text-align:center;border:2px solid #fff;border-radius:8px;padding:2px 14px;font-weight:700;letter-spacing:.3px}.fc small{display:block;font-weight:400;color:var(--mu);font-size:10px}
 .ib{background:none;border:0;color:#e6e8ec;padding:4px;display:inline-flex}.ib svg{width:24px;height:24px}
 #main{flex:1;overflow:auto;padding:12px}
-#bar{display:flex;gap:6px;padding:6px 10px;background:#1d1d20e6}#bar .tabs{display:flex;flex:1;background:#3a3a40;border-radius:12px;padding:3px;gap:2px;overflow-x:auto}
+#bar{
+  display:flex;
+  gap:6px;
+  padding:6px 10px calc(6px + env(safe-area-inset-bottom));
+  margin-bottom:calc(-1 * env(safe-area-inset-bottom));
+  background:#1d1d20e6;
+  flex-shrink:0;
+}#bar .tabs{display:flex;flex:1;background:#3a3a40;border-radius:12px;padding:3px;gap:2px;overflow-x:auto}
 #bar button{flex:1;min-width:68px;background:none;border:0;border-radius:10px;color:#cfd2d8;padding:6px 2px;font-size:11px;font-weight:600}
 #bar button.on{background:#e9ebef;color:#16181c}#bar .pl{flex:0 0 58px;background:#3a3a40;border-radius:12px}
 svg.ic{width:23px;height:23px;display:block;margin:0 auto 2px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
