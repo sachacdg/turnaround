@@ -351,7 +351,56 @@ OFPV[0][1]=o.w.pax;OFPV[1][1]=o.w.zfw;OFPV[2][1]=o.fuel.ramp;S.ls=[o.w.pax,o.w.z
 const co=o.call.slice(0,3),d=pickStand(co,o.d,isNS(o.a)),a=pickStand(co,o.a,isNS(o.d));S.pk={dep:{p:d.stand,t:d.term,g:d.gate},arr:{p:a.stand,t:a.term,g:a.gate}};S.crew=mkCrew();S.tsat=0;S.tobt=S.tobt||hmM(o.stdMs);S.msg=t('syncok');if(oldReg!==FL.reg){S.techlogDefects=[];loadTechlog(FL.reg).then(()=>{if(S.tab==='avi')render()}).catch(e=>console.error('Techlog loading failed:',e))}render();viffPoll()}
 function demo(){load(parseOFP(demoJ()))}
 async function sbFetch(u){const q='username='+encodeURIComponent(u)+'&json=1';let er;for(const x of['/api/simbrief?'+q,'https://www.simbrief.com/api/xml.fetcher.php?'+q]){try{const r=await fetch(x);if(r.ok)return await r.json()}catch(e){er=e}}throw er||new Error('fetch')}
-async function syn(){if(!S.sbu){S.msg=t('needsb');S.needDemo=1;render();return}S.msg=t('syncing');render();try{load(parseOFP(await sbFetch(S.sbu)))}catch(e){S.msg=t('syncerr');S.needDemo=1;render()}}
+async function syn(){
+ if(!S.sbu){
+  S.msg=t('needsb');
+  S.needDemo=1;
+  render();
+  return;
+ }
+
+ S.msg=t('syncing');
+ render();
+
+ try{
+  const j=await sbFetch(S.sbu);
+  const o=parseOFP(j);
+
+  S.prevAircraftFlight=null;
+  load(o);
+
+  if(
+   S.user&&
+   Store.mode==='server'&&
+   o.reg&&o.reg!=='—'&&
+   o.offBlocksMs>0&&
+   o.staMs>=o.offBlocksMs
+  ){
+   try{
+    const result=await Store.aircraftHistoryUpsert({
+     registration:o.reg,
+     flightNumber:o.no,
+     origin:o.d,
+     destination:o.a,
+     offBlocksMs:o.offBlocksMs,
+     onBlocksMs:o.staMs,
+     pax:o.w.pax
+    });
+
+    S.prevAircraftFlight=result.previous||null;
+   }catch(e){
+    console.error('Aircraft history sync failed:',e);
+   }
+  }
+
+  render();
+ }catch(e){
+  console.error('SimBrief sync failed:',e);
+  S.msg=t('syncerr');
+  S.needDemo=1;
+  render();
+ }
+}
 async function viffSetTobt(v){/* TODO: brancher l’endpoint TOBT d’api.viffsys.com (OpenAPI) avec le jeton S.viff.tok, côté serveur */throw new Error('endpoint')}
 function setTobt(v){S.tobt=v;S.msg=t('tloc');if(S.viff.on)viffSetTobt(v).catch(()=>{});render()}
 function setTsat(v){S.tsat=v?tdm(v):0;render()}
