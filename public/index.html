@@ -777,7 +777,7 @@ setInterval(async()=>{
     techlogPollBusy=false;
   }
 },10000);
-const SK=['lang','side','uname','sbu','eos','th','stands','nextNS','gsxHost','gsxPort','boardMode','bgImage'];
+const SK=['lang','side','uname','sbu','eos','th','stands','nextNS','gsxHost','gsxPort','boardMode','bgImage','navStyle'];
 function snap(){const set={};SK.forEach(k=>set[k]=S[k]);set.cid=S.viff.cid;delete set.viffApiKey;delete set.apiKey;const ac={};for(const k in S.db.ac)if(k!='—')ac[k]=S.db.ac[k];const flight={ofp:S.ofp||null,FL:{no:FL.no,reg:FL.reg,ty:FL.ty,d:FL.d,a:FL.a,call:FL.call,std:FL.std,sta:FL.sta},rls:S.rls,sg:S.sg,ls:S.ls,col:S.col,nv:S.nv,sub:S.sub,sel:S.sel,bd:S.bd,brd:S.brd,px:S.px,hc:S.hc,pk:S.pk,crew:S.crew,tsat:S.tsat,tobt:S.tobt,tobtV:S.tobtV,ctotV:S.ctotV,cdm:S.cdm,ng:S.ng,nq:S.nq,nraw:S.nraw,bt0:S.bt0,bdur:S.bdur};return JSON.stringify({set,db:{ac,rep:S.db.rep,duty:S.db.duty,hist:S.db.hist,notes:S.db.notes},flight})}
 let lastSnap='';setInterval(()=>{if(!S.user)return;const s=snap();if(s!==lastSnap){lastSnap=s;Store.save(S.user,JSON.parse(s)).catch(()=>{})}},2500);
 /* briefings PDF (IndexedDB, per account) */
